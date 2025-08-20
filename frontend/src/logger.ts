@@ -1,7 +1,12 @@
-import { Logger, type ILogObj } from "tslog";
+import log from "loglevel";
 
-export const EpubViewerLog = new Logger<ILogObj>({
-  name: "EpubApp",
-  minLevel: import.meta.env.MODE === "development" ? 2 : 4,
-  type: "hidden"
-});
+const isDev = import.meta.env.MODE === "development";
+
+// Create named loggers
+export const EpubAppLog = log.getLogger("EpubApp");
+export const BookApiLog = log.getLogger("BookApi");
+
+// Set log level
+const level = isDev ? "debug" : "warn";
+EpubAppLog.setLevel(level);
+BookApiLog.setLevel(level);
