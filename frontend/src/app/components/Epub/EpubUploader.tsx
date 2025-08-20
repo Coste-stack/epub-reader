@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import JSZip from "jszip";
-import { readContentOpf, extractOpfData } from "./EpubUtil";
-import { EpubAppLog as logger } from "./logger";
-import { addBook, type Book } from "./assets/api/books";
+import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
+import { EpubAppLog as logger } from "../../util/Logger";
+import { addBook, type Book } from "../../util/Books";
 
 const EpubUploader: React.FC<{}> = () => {
   const [error, setError] = useState<string | null>(null);

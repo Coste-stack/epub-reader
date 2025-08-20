@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getAllBooks, type Book } from "../api/books";
-import { BookApiLog as logger } from "../../logger";
+import { getAllBooks, type Book } from "../../util/Books";
+import { BookApiLog as logger } from "../../util/Logger";
 
 export const BookList: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
