@@ -48,7 +48,7 @@ export const processZip = async (zip: JSZip, maxChapters: number): Promise<Chapt
   if (xhtmlFiles.length === 0) {
     logger.warn("[processZip] No .xhtml files found!");
   }
-  const chapterPromises = xhtmlFiles.map(async (name, idx) => {
+  const chapterPromises = xhtmlFiles.map(async (name) => {
     try {
       const file = zip.files[name];
       if (!file) {
