@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ToastContext } from "./toast-context";
+import { ToastContext, type ToastNotificationVariant } from "./toast-context";
 import "./toast.css";
 
 // Custom hook for running a callback after a specified timeout
@@ -19,12 +19,10 @@ function useTimeout(callbackFunction: () => void) {
   }, []);
 }
 
-type NotificationVariant = "error" | "info" | "warning" | "success";
-
 type ToastProperties = {
   message: string;
   close: () => void;
-  type: NotificationVariant;
+  type: ToastNotificationVariant;
 };
 
 
@@ -60,7 +58,7 @@ type ToastProviderProperties = {
 type ToastState = {
   message: string;
   id: number;
-  type: NotificationVariant;
+  type: ToastNotificationVariant;
 };
 
 // Stores and displays a list of toasts, and provides context
@@ -68,7 +66,7 @@ export function ToastProvider({ children }: ToastProviderProperties) {
   const [toasts, setToasts] = useState<ToastState[]>([]);
 
   // Add a new toast to the list
-  function openToast(message: string, type: NotificationVariant = "info") {
+  function openToast(message: string, type: ToastNotificationVariant = "info") {
     const newToast = {
       id: Date.now(),
       message: message,

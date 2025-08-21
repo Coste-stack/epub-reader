@@ -1,7 +1,9 @@
 import { createContext, useContext } from "react";
 
+export type ToastNotificationVariant = "error" | "info" | "warning" | "success";
+
 type ToastContextValue = {
-  open: (message: string) => void;
+  open: (message: string, type?: ToastNotificationVariant) => void;
   close: (id: number) => void;
 };
 
