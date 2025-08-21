@@ -9,8 +9,8 @@ export interface Book {
   coverPath?: string;
 }
 
-const api_location = "http://localhost:";
-const api_port = 8080;
+const api_location = import.meta.env.VITE_BACKEND_API_LOCATION;
+const api_port = import.meta.env.VITE_BACKEND_API_PORT;
 
 export async function getAllBooks(): Promise<Book[]> {
   try {
@@ -31,5 +31,4 @@ export async function addBook(book: Omit<Book, "id">): Promise<Book> {
         : error.message;
     throw new Error("Failed to add book: " + backendMessage);
   }
-  
 }
