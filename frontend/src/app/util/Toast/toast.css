@@ -1,0 +1,125 @@
+:root {
+  --toast-bg: #27272a;
+  --toast-color: #fff;
+  --toast-bar-error: #e74c3c;
+  --toast-bar-info: #3498db;
+  --toast-bar-warning: #f1c40f;
+  --toast-bar-success: #27ae60;
+  --toast-box-shadow: 0 4px 20px rgba(0,0,0,0.20), 0 1.5px 6px rgba(0,0,0,0.10);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --toast-bg: #fff;
+    --toast-color: #232323;
+    --toast-bar-error: #e74c3c;
+    --toast-bar-info: #3498db;
+    --toast-bar-warning: #f39c12;
+    --toast-bar-success: #27ae60;
+    --toast-box-shadow: 0 4px 16px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.08);
+  }
+}
+
+.toasts {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background-color: var(--toast-bg);
+  color: var(--toast-color);
+  box-shadow: var(--toast-box-shadow);
+  border: 1.5px solid rgba(0,0,0,0.11);
+
+  width: 300px;
+  padding: 0px 20px 0 6px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.toast {
+  animation: slideIn 0.25s ease-out;
+}
+.toast.fade-out {
+  animation: slideOut 0.3s forwards;
+}
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes slideOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.toast,
+.close-button {
+  cursor: pointer;
+}
+
+.close-button {
+  /*set to top right*/
+  position: absolute;
+  top: 5px;
+  right: 5px;
+
+  background: none;
+  padding: 5px 5px;
+}
+
+.close-button:hover {
+  border-color: #943056;
+}
+
+.toast-bar {
+  /*set to left*/
+  position: absolute;
+  left: 6px;
+  /*center vertically*/
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 6px;
+  height: 75%;
+  border-radius: 4px;
+}
+
+.toast.error .toast-bar {
+  background-color: var(--toast-bar-error);
+}
+.toast.info .toast-bar {
+  background-color: var(--toast-bar-info);
+}
+.toast.warning .toast-bar {
+  background-color: var(--toast-bar-warning);
+}
+.toast.success .toast-bar {
+  background-color: var(--toast-bar-success);
+}
+
+.toast p {
+  margin: 0;
+  padding: 12px 24px 12px 24px;
+  flex: 1 1 auto;
+  font-size: 1rem;
+  word-break: break-word;
+  line-height: 1.5;
+  text-align: left;
+}
