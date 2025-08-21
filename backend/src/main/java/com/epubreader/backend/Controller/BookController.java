@@ -4,11 +4,13 @@ import com.epubreader.backend.Model.Book;
 import com.epubreader.backend.Service.BookService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/books")
 public class BookController {
 
