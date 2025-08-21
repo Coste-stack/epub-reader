@@ -5,22 +5,56 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
+import java.time.LocalDateTime;
+
 @Entity
 public class Book {
     @Id
     @GeneratedValue
     private Long id;
-
     @Column(unique = true)
     private String title;
     private String author;
 
     private Integer progress;
-
-    private Boolean favorite;
+    private LocalDateTime progressSynchedAt;
+    private Boolean isFileUploaded;
+    private Boolean isFavorite;
 
     public Long getId() {
         return id;
+    }
+
+    public Integer getProgress() {
+        return progress;
+    }
+
+    public void setProgress(Integer progress) {
+        this.progress = progress;
+    }
+
+    public LocalDateTime getProgressSynchedAt() {
+        return progressSynchedAt;
+    }
+
+    public void setProgressSynchedAt(LocalDateTime progressSynchedAt) {
+        this.progressSynchedAt = progressSynchedAt;
+    }
+
+    public Boolean getFileUploaded() {
+        return isFileUploaded;
+    }
+
+    public void setFileUploaded(Boolean fileUploaded) {
+        isFileUploaded = fileUploaded;
+    }
+
+    public Boolean getFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(Boolean favorite) {
+        isFavorite = favorite;
     }
 
     public String getTitle() {
@@ -37,21 +71,5 @@ public class Book {
 
     public void setAuthor(String author) {
         this.author = author;
-    }
-
-    public Integer getProgress() {
-        return progress;
-    }
-
-    public void setProgress(Integer progress) {
-        this.progress = progress;
-    }
-
-    public Boolean getFavorite() {
-        return favorite;
-    }
-
-    public void setFavorite(Boolean favorite) {
-        this.favorite = favorite;
     }
 }
