@@ -1,10 +1,14 @@
 import JSZip from "jszip";
 import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
-import { EpubAppLog as logger } from "../../util/Logger";
+import { EpubAppLogger as logger } from "../../util/Logger";
 import { addBook, type Book } from "../../util/Books";
 import { useToast } from "../../util/Toast/toast-context";
 
-const EpubUploader: React.FC<{}> = () => {
+type EpubUploaderProps = {
+  onUpload: () => void;
+};
+
+const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
   const toast = useToast();
 
   // input handler for manual file upload
@@ -26,7 +30,9 @@ const EpubUploader: React.FC<{}> = () => {
       // Add the book via API
       logger.info("Trying to add book");
       await addBook(data as Book);
+      
       toast?.open("Book added successfully!", "success");
+      onUpload(); // Refresh books using GET API 
     } catch (err) {
       // Log the error
       let message: string = "Error uploading EPUB";

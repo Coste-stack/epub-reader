@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import JSZip from "jszip";
-import { EpubAppLog as logger } from "../../util/Logger";
+import { EpubAppLogger as logger } from "../../util/Logger";
 import { processZip, type Chapter } from "../../util/EpubUtil";
 
 type EpubViewerProps = {

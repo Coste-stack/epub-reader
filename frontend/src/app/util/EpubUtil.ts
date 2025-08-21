@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { EpubAppLog as logger } from "./Logger";
+import { EpubAppLogger as logger } from "./Logger";
 import type JSZip from "jszip";
 
 export type Chapter = {

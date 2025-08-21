@@ -1,17 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { getAllBooks, type Book } from "../../util/Books";
-import { BookApiLog as logger } from "../../util/Logger";
+import type { Book } from "../../util/Books";
 
-export const BookList: React.FC = () => {
-  const [books, setBooks] = useState<Book[]>([]);
+type BookListProps = {
+  books: Book[];
+};
 
-  useEffect(() => {
-    getAllBooks().then(data => {
-      logger.debug('Books from API:', data);
-      setBooks(data)
-    });
-  }, []);
-
+export const BookList: React.FC<BookListProps> = ({ books }) => {
   return (
     <ul>
       {books.map((book) => (
