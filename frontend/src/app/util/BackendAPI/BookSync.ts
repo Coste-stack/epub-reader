@@ -1,5 +1,5 @@
-import { getAllBooksFromDb, saveBooksToDb } from "./Database";
-import { BookSyncLogger } from "./Logger"
+import { getAllBooksFromDb, saveBooksToDb } from "../Database";
+import { BookSyncLogger } from "../Logger"
 import { getAllBooks, type Book } from "./Books";
 
 function areBooksEqual(a: Book[], b: Book[]): boolean {

@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
 import { EpubAppLogger as logger } from "../../util/Logger";
-import { addBook, type Book } from "../../util/Books";
+import { addBook, type Book } from "../../util/BackendAPI/Books";
 import { useToast } from "../../util/Toast/toast-context";
 
 type EpubUploaderProps = {

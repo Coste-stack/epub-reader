@@ -1,4 +1,5 @@
 import axios from "axios";
+import { BACKEND_API_URL } from "./BackendConnection";
 
 export interface Book {
   id?: number;
@@ -9,12 +10,9 @@ export interface Book {
   coverPath?: string;
 }
 
-const API_URL = import.meta.env.VITE_BACKEND_API_LOCATION +
-  import.meta.env.VITE_BACKEND_API_PORT;
-
 export async function getAllBooks(): Promise<Book[]> {
   try {
-    const res = await axios.get<Book[]>(`${API_URL}/api/books`);
+    const res = await axios.get<Book[]>(`${BACKEND_API_URL}/api/books`);
     return res.data;
   } catch (error: any) {
     throw new Error("Failed to get books: " + (error instanceof Error ? error.message : String(error)));
@@ -23,7 +21,7 @@ export async function getAllBooks(): Promise<Book[]> {
 
 export async function addBook(book: Omit<Book, "id">): Promise<Book> {
   try {
-    const res = await axios.post<Book>(`${API_URL}/api/books`, book);
+    const res = await axios.post<Book>(`${BACKEND_API_URL}/api/books`, book);
     return res.data;
   } catch (error: any) {
     const backendMessage = error.response?.data && typeof error.response.data === "string"
@@ -35,7 +33,7 @@ export async function addBook(book: Omit<Book, "id">): Promise<Book> {
 
 export async function uploadBook(bookId: Pick<Book, "id">, file: File): Promise<Book> {
   try {
-    const res = await axios.post<Book>(`${API_URL}/api/books${bookId}/upload`, file);
+    const res = await axios.post<Book>(`${BACKEND_API_URL}/api/books${bookId}/upload`, file);
     return res.data;
   } catch (error: any) {
     const backendMessage = error.response?.data && typeof error.response.data === "string"
