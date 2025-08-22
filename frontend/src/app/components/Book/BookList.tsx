@@ -10,6 +10,7 @@ export const BookList: React.FC<BookListProps> = ({ books }) => {
       {books.map((book) => (
         <li key={book.id}>
           <strong>{book.title}</strong> by {book.author}
+          <button className="upload-button">Upload</button>
         </li>
       ))}
     </ul>

@@ -6,9 +6,9 @@ const manifestForPlugIn: Partial<VitePWAOptions> = {
   registerType: "prompt",
   includeAssets: ["assets/*"],
   manifest:{
-    name: "epub-reader-frontend",
-    short_name: "epub-reader",
-    description: "An epub reader PWA app for tracking progress with a database and backend",
+    name: "EPUB Reader",
+    short_name: "EPUB",
+    description: "An epub reader PWA app for tracking progress",
     icons:[
       {
         src: "assets/icon512.png",
