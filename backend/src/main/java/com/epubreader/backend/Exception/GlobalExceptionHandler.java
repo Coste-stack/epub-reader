@@ -10,7 +10,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return ResponseEntity.badRequest().body("Book with this title already exists.");
+        String message = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+        if (message != null && message.toLowerCase().contains("unique")) {
+            return ResponseEntity.badRequest().body("Book with this title already exists.");
+        }
+        return ResponseEntity.badRequest().body("A data integrity error occurred: " + message);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
