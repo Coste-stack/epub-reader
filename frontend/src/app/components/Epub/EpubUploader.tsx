@@ -3,6 +3,7 @@ import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
 import { EpubAppLogger as logger } from "../../util/Logger";
 import { addBook, type Book } from "../../util/BackendAPI/Books";
 import { useToast } from "../../util/Toast/toast-context";
+import { extractUserMessage } from "../../util/ExtractUserMessage";
 
 type EpubUploaderProps = {
   onUpload: () => void;
@@ -26,7 +27,7 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       const opfContent = await readContentOpf(zip);
       logger.trace(opfContent); // hidden - for debug
       const data = await extractOpfData(zip);
-      logger.debug("Book data: " + data);
+      logger.debug("Book data: " + JSON.stringify(data));
       // Add the book via API
       logger.info("Trying to add book");
       await addBook(data as Book);
@@ -37,13 +38,7 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       // Log the error
       let message: string = "Error uploading EPUB";
       logger.error(message + " from file:", err);
-      // Extract a user friendly message
-      if (err instanceof Error && typeof err.message === "string") {
-        // Split by colon and trim whitespace, get the last part
-        const parts = err.message.split(":");
-        message = parts[parts.length - 1].trim();
-      }
-      toast?.open(message, "error");
+      toast?.open(extractUserMessage(err), "error");
     }
   };
 
