@@ -7,7 +7,7 @@ export interface Book {
   author: string;
   progress?: number;
   favorite?: boolean;
-  coverPath?: string;
+  coverBlob?: Blob;
 }
 
 export async function getAllBooks(): Promise<Book[]> {

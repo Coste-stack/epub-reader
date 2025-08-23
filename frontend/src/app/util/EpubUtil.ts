@@ -112,22 +112,47 @@ export async function readContentOpf(zip: JSZip): Promise<string | null> {
   return await opfFile.async("string");
 }
 
+function resolvePath(opfPath: string, itemHref: string): string {
+  // Get base directory of opfPath
+  const opfDir = opfPath.includes('/') ? opfPath.substring(0, opfPath.lastIndexOf('/') + 1) : '';
+  // If itemHref already contains a directory, use it relative to OPF dir.
+  // If itemHref starts with '/', treat as root
+  if (itemHref.startsWith('/')) {
+    return itemHref.replace(/^\//, ''); // Remove leading slash for zip
+  }
+  return opfDir + itemHref.replace(/\\/g, '/');
+}
+
+function findZipFile(zip: JSZip, opfPath: string, href: string): JSZip.JSZipObject | null {
+  const resolved = resolvePath(opfPath, href);
+  console.log(`opfPath: ${opfPath}\nhref: ${href}\nfullPath: ${resolved}`);
+
+  // Try to find the file
+  let file = zip.file(resolved);
+  if (file) return file;
+
+  // If name is ascii encoded
+  try {
+    const decoded = decodeURIComponent(resolved);
+    file = zip.file(decoded);
+    if (file) return file;
+  } catch {}
+
+  // Nothing found
+  return null;
+}
+
 // Returns an object of data from content.opf file
 export async function extractOpfData(zip: JSZip) {
-  const opfString = await readContentOpf(zip);
-  if (!opfString) return null;
+  const opfPath = await getOpfPath(zip);
+  if (!opfPath) return { title: "", author: "" };
+
+  const opfFile = zip.file(opfPath);
+  if (!opfFile) return { title: "", author: "" };
+  const opfString = await opfFile.async("string");
   
   const parser = new DOMParser();
   const doc = parser.parseFromString(opfString, "application/xml");
-
-  // Find the cover id
-  const coverMeta = doc.querySelector('meta[name="cover"]')?.getAttribute("content");
-  // Find the cover path
-  let coverPath: string | undefined = undefined;
-  if (coverMeta) {
-    const item = doc.querySelector(`manifest > item[id="${coverMeta}"]`);
-    coverPath = item?.getAttribute("href") || undefined;
-  }
 
   // Namespaces used in OPF
   const dcNS = "http://purl.org/dc/elements/1.1/";
@@ -135,9 +160,33 @@ export async function extractOpfData(zip: JSZip) {
     return doc.getElementsByTagNameNS(dcNS, tag)[0]?.textContent ?? "";
   }
 
+  // Cover image
+  let coverBlob: Blob | undefined;
+  const coverMeta = doc.querySelector('meta[name="cover"]')?.getAttribute("content");
+  console.log(coverMeta);
+
+  if (coverMeta) {
+    const item = doc.querySelector(`manifest > item[id="${coverMeta}"]`);
+    console.log(`item: ${item}`);
+    const href = item?.getAttribute("href") || undefined;
+    if (href && opfPath) {
+      const file = findZipFile(zip, opfPath, href);
+      console.log(`file: ${file}`);
+
+      if (file) {
+        const arr = await file.async("uint8array");
+        const fixedArr = new Uint8Array(arr.buffer as ArrayBuffer, arr.byteOffset, arr.byteLength);
+
+        const mediaType = item?.getAttribute("media-type") || "image/jpeg";
+        console.log(`mediaType: ${mediaType}`);
+        coverBlob = new Blob([fixedArr], { type: mediaType });
+      }
+    }
+  }
+
   return {
     title: getText("title"),
     author: getText("creator"),
-    coverPath: coverPath
+    coverBlob,
   };
 }

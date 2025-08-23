@@ -4,6 +4,7 @@ import { EpubAppLogger as logger } from "../../util/Logger";
 import { addBook, type Book } from "../../util/BackendAPI/Books";
 import { useToast } from "../../util/Toast/toast-context";
 import { extractUserMessage } from "../../util/ExtractUserMessage";
+import { saveBookToDb } from "../../util/Database";
 
 type EpubUploaderProps = {
   onUpload: () => void;
@@ -30,7 +31,8 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       logger.debug("Book data: " + JSON.stringify(data));
       // Add the book via API
       logger.info("Trying to add book");
-      await addBook(data as Book);
+      //await addBook(data as Book);
+      await saveBookToDb(data as Book);
       
       toast?.open("Book added successfully!", "success");
       onUpload(); // Refresh books using GET API 

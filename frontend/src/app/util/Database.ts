@@ -11,7 +11,7 @@ function openDb(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
         logger.info(`Object store '${STORE_NAME}' created in IndexedDB '${DB_NAME}'.`);
       } else {
         logger.info(`Object store '${STORE_NAME}' already exists in IndexedDB '${DB_NAME}'.`);
@@ -40,7 +40,14 @@ export async function saveBooksToDb(books: Book[]): Promise<void> {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
 
-    books.forEach(book => store.put(book));
+    books.forEach(book => {
+      logger.debug("Saving book:", book);
+      if (typeof book.id === 'undefined') {
+        store.add(book);
+      } else {
+        store.put(book);
+      }
+    });
 
     return await new Promise<void>((resolve, reject) => {
       transaction.oncomplete = () => {
