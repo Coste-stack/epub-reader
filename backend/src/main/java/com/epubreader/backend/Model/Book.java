@@ -15,6 +15,7 @@ public class Book {
     @Column(unique = true)
     private String title;
     private String author;
+    private String coverPath;
 
     private Integer progress;
     private LocalDateTime progressSynchedAt;
@@ -23,6 +24,14 @@ public class Book {
 
     public Long getId() {
         return id;
+    }
+
+    public String getCoverPath() {
+        return coverPath;
+    }
+
+    public void setCoverPath(String coverPath) {
+        this.coverPath = coverPath;
     }
 
     public Integer getProgress() {
