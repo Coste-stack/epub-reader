@@ -68,7 +68,7 @@ export function ToastProvider({ children }: ToastProviderProperties) {
   // Add a new toast to the list
   function openToast(message: string, type: ToastNotificationVariant = "info") {
     const newToast = {
-      id: Date.now(),
+      id: Date.now() + Math.random(),
       message: message,
       type: type,
     };
