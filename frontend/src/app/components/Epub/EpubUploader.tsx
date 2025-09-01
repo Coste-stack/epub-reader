@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
 import { EpubAppLogger as logger } from "../../util/Logger";
-import { addBook, type Book } from "../../util/BackendAPI/Books";
+import { addBook, uploadCoverBlob, type Book } from "../../util/BackendAPI/Books";
 import { useToast } from "../../util/Toast/toast-context";
 import { extractUserMessage } from "../../util/ExtractUserMessage";
 import { saveBookToDb } from "../../util/Database";
@@ -28,11 +28,13 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       const opfContent = await readContentOpf(zip);
       logger.trace(opfContent); // hidden - for debug
       const data = await extractOpfData(zip);
-      logger.debug("Book data: " + JSON.stringify(data));
+      logger.debug("Book data: " + data);
       // Add the book via API
       logger.info("Trying to add book");
-      //await addBook(data as Book);
-      await saveBookToDb(data as Book);
+      await addBook(data as Book);
+      logger.info("Trying to upload cover blob");
+      await uploadCoverBlob(data as Book);
+      //await saveBookToDb(data as Book);
       
       toast?.open("Book added successfully!", "success");
       onUpload(); // Refresh books using GET API 

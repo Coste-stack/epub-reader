@@ -1,4 +1,5 @@
 import { getAllBooksFromDb, saveBooksToDb } from "../Database";
+import { base64ToBlob } from "../EpubUtil";
 import { BookSyncLogger } from "../Logger"
 import { getAllBooks, type Book } from "./Books";
 
@@ -41,6 +42,16 @@ export async function handleOnlineRefresh(setBooks: SetBooksType) {
   try {
     // Get books from backend db
     backendBooks = await getAllBooks();
+    // Convert all base64 strings to Blob
+    backendBooks.forEach(book => {
+      if (book.coverBlob && typeof book.coverBlob === "string") {
+        book.coverBlob = base64ToBlob(book.coverBlob, "image/png");
+      } else {
+        book.coverBlob = undefined;
+      }
+      
+    })
+    
     BookSyncLogger.debug('Books from backend db:', backendBooks);
     BookSyncLogger.info("Books refreshed from backend db");
     setBooks(backendBooks);
