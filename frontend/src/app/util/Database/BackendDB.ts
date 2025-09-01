@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BACKEND_API_URL } from "./BackendConnection";
+import { BACKEND_API_URL } from "../BackendAPI/BackendConnection";
 
 export interface Book {
   id?: number;

@@ -1,10 +1,10 @@
 import JSZip from "jszip";
 import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
 import { EpubAppLogger as logger } from "../../util/Logger";
-import { addBook, uploadCoverBlob, type Book } from "../../util/BackendAPI/Books";
+import { addBook, uploadCoverBlob, type Book } from "../../util/Database/BackendDB";
 import { useToast } from "../../util/Toast/toast-context";
 import { extractUserMessage } from "../../util/ExtractUserMessage";
-import { saveBookToDb } from "../../util/Database";
+import { saveBookToDb } from "../../util/Database/ClientDB";
 
 type EpubUploaderProps = {
   onUpload: () => void;

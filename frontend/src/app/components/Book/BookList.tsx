@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { Book } from "../../util/BackendAPI/Books";
+import type { Book } from "../../util/Database/BackendDB";
 
 type BookListProps = {
   books: Book[];

@@ -1,5 +1,5 @@
-import type { Book } from './BackendAPI/Books';
-import { DatabaseLogger as logger } from './Logger'
+import type { Book } from './BackendDB';
+import { DatabaseLogger as logger } from '../Logger'
 
 const DB_NAME = 'epub-reader-db';
 const STORE_NAME = 'books';

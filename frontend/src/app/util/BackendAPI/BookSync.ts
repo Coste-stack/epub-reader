@@ -1,7 +1,7 @@
-import { getAllBooksFromDb, saveBooksToDb } from "../Database";
+import { getAllBooksFromDb, saveBooksToDb } from "../Database/ClientDB";
 import { base64ToBlob } from "../EpubUtil";
 import { BookSyncLogger } from "../Logger"
-import { getAllBooks, type Book } from "./Books";
+import { getAllBooks, type Book } from "../Database/BackendDB";
 
 function areBooksEqual(a: Book[], b: Book[]): boolean {
   if (a.length !== b.length) return false;
