@@ -1,7 +1,7 @@
-import { getAllBooksFromDb, saveBooksToDb } from "../Database/ClientDB";
 import { base64ToBlob } from "../EpubUtil";
 import { BookSyncLogger } from "../Logger"
-import { getAllBooks, type Book } from "../Database/BackendDB";
+import { ClientDB } from "../Database/ClientDB";
+import { BackendDB, type Book } from "../Database/BackendDB";
 
 function areBooksEqual(a: Book[], b: Book[]): boolean {
   if (a.length !== b.length) return false;
@@ -21,13 +21,13 @@ function areBooksEqual(a: Book[], b: Book[]): boolean {
 async function updateLocalDb(backendBooks: Book[]): Promise<void> {
   BookSyncLogger.info("Trying to check if local db is up to date");
   try {
-    const localBooks = await getAllBooksFromDb();
+    const localBooks = await ClientDB.getAllBooks();
     BookSyncLogger.debug('Books from local db:', localBooks);
     if (areBooksEqual(backendBooks, localBooks)) {
       BookSyncLogger.info("Local db is already updated");
     } else {
       BookSyncLogger.info("Trying to update local db");
-      await saveBooksToDb(backendBooks);
+      await ClientDB.addBooks(backendBooks);
       BookSyncLogger.info("Local db has been updated");
     }
   } catch (err) {
@@ -37,11 +37,11 @@ async function updateLocalDb(backendBooks: Book[]): Promise<void> {
 
 type SetBooksType = React.Dispatch<React.SetStateAction<Book[]>>;
 
-export async function handleOnlineRefresh(setBooks: SetBooksType) {
+export async function handleOnlineRefresh(setBooks: SetBooksType): Promise<void> {
   let backendBooks: Book[] = [];
   try {
     // Get books from backend db
-    backendBooks = await getAllBooks();
+    backendBooks = await BackendDB.getAllBooks();
     // Convert all base64 strings to Blob
     backendBooks.forEach(book => {
       if (book.coverBlob && typeof book.coverBlob === "string") {
@@ -49,7 +49,6 @@ export async function handleOnlineRefresh(setBooks: SetBooksType) {
       } else {
         book.coverBlob = undefined;
       }
-      
     })
     
     BookSyncLogger.debug('Books from backend db:', backendBooks);
@@ -68,10 +67,10 @@ export async function handleOnlineRefresh(setBooks: SetBooksType) {
   }
 };
 
-export async function handleOfflineRefresh(setBooks: SetBooksType) {
+export async function handleOfflineRefresh(setBooks: SetBooksType): Promise<void> {
   try {
     // Get books from local db
-    const localBooks = await getAllBooksFromDb();
+    const localBooks = await ClientDB.getAllBooks();
     BookSyncLogger.debug('Books from local db:', localBooks);
     BookSyncLogger.info("Books refreshed from local db");
     setBooks(localBooks);

@@ -1,10 +1,11 @@
 import JSZip from "jszip";
 import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
 import { EpubAppLogger as logger } from "../../util/Logger";
-import { addBook, uploadCoverBlob, type Book } from "../../util/Database/BackendDB";
-import { useToast } from "../../util/Toast/toast-context";
+import { useToast, type ToastNotificationVariant } from "../../util/Toast/toast-context";
 import { extractUserMessage } from "../../util/ExtractUserMessage";
-import { saveBookToDb } from "../../util/Database/ClientDB";
+import { useBackend } from "../../util/BackendAPI/BackendContext";
+import { BackendDB, type Book } from "../../util/Database/BackendDB";
+import { ClientDB } from "../../util/Database/ClientDB";
 
 type EpubUploaderProps = {
   onUpload: () => void;
@@ -12,6 +13,7 @@ type EpubUploaderProps = {
 
 const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
   const toast = useToast();
+  const { backendAvailable, refreshBackendStatus } = useBackend();
 
   // input handler for manual file upload
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,14 +31,56 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       logger.trace(opfContent); // hidden - for debug
       const data = await extractOpfData(zip);
       logger.debug("Book data: " + data);
-      // Add the book via API
-      logger.info("Trying to add book");
-      await addBook(data as Book);
-      logger.info("Trying to upload cover blob");
-      await uploadCoverBlob(data as Book);
-      //await saveBookToDb(data as Book);
-      
-      toast?.open("Book added successfully!", "success");
+
+      // Add the book
+      interface ToastStatus {
+        addedToBackend: boolean;
+        addedLocally: boolean;
+        toastMsg: string;
+        toastType: ToastNotificationVariant;
+      }
+      const status: ToastStatus = {
+        addedToBackend: false,
+        addedLocally: false,
+        toastMsg: "",
+        toastType: "success"
+      };
+
+      if (navigator.onLine) {
+        refreshBackendStatus(true);
+        if (backendAvailable) {
+          try {
+            logger.info("Adding book to backend database");
+            await BackendDB.addBook(data as Book);
+            logger.info("Uploading cover blob");
+            await BackendDB.uploadCoverBlob(data as Book);
+            status.addedToBackend = true;
+          } catch (error) {
+            logger.warn("Failed adding book to backend:", error);
+          }
+        }
+      }
+
+      try {
+        logger.info("Adding book to client database");
+        await ClientDB.addBook(data as Book);
+        status.addedLocally = true;
+      } catch (error) {
+        logger.error("Failed adding book to client database:", error);
+        status.toastMsg = "Failed to add book to client database";
+        status.toastType = "error";
+      }
+
+      if (status.addedToBackend && status.addedLocally) {
+        status.toastMsg = "Book added successfully!";
+      } else if (!status.addedToBackend && status.addedLocally && navigator.onLine) {
+        status.toastMsg = "Book added locally (backend unavailable)";
+      } else if (!navigator.onLine && status.addedLocally) {
+        status.toastMsg = "Book added locally (offline mode)";
+      }
+
+      if (status.toastMsg) toast?.open(status.toastMsg, status.toastType);
+
       onUpload(); // Refresh books using GET API 
     } catch (err) {
       // Log the error
