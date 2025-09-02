@@ -10,6 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,6 +70,25 @@ public class BookController {
         }
     }
 
+    @PostMapping("/{id}/cover")
+    public ResponseEntity<String> uploadCover(@PathVariable Long id, @RequestParam("cover") MultipartFile multipartFile) throws IOException {
+        if (multipartFile.isEmpty()) {
+            return ResponseEntity.badRequest().body("Cover file is empty");
+        }
+
+        // Find the book in the database
+        Optional<Book> optionalBook = bookService.findById(id);
+        if (optionalBook.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Book book = optionalBook.get();
+
+        // Save cover as byte array
+        book.setCoverBlob(multipartFile.getBytes());
+        bookService.save(book);
+        return ResponseEntity.ok("Cover uploaded successfully");
+    }
+
     @PostMapping("{id}/upload")
     public ResponseEntity<String> uploadBookFile(@PathVariable Long id, @RequestParam("file") MultipartFile multipartFile) throws IOException {
         if (multipartFile.isEmpty()) {
@@ -96,7 +116,6 @@ public class BookController {
         // Update isFileUploaded in database
         book.setFileUploaded(true);
         bookService.save(book);
-
         return ResponseEntity.ok("File uploaded successfully");
     }
 }

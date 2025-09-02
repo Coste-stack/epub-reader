@@ -25,6 +25,9 @@ public class BookService {
     }
 
     public Book save(Book book) {
+        if (book.getCoverBlob() != null && book.getCoverBlob().length == 0) {
+            book.setCoverBlob(null);
+        }
         return bookRepository.save(book);
     }
 

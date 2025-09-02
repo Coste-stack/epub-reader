@@ -1,9 +1,6 @@
 package com.epubreader.backend.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -12,10 +9,13 @@ public class Book {
     @Id
     @GeneratedValue
     private Long id;
+
     @Column(unique = true)
     private String title;
     private String author;
-    private String coverPath;
+
+    @Lob
+    private byte[] coverBlob;
 
     private Integer progress;
     private LocalDateTime progressSynchedAt;
@@ -26,12 +26,12 @@ public class Book {
         return id;
     }
 
-    public String getCoverPath() {
-        return coverPath;
+    public byte[] getCoverBlob() {
+        return coverBlob;
     }
 
-    public void setCoverPath(String coverPath) {
-        this.coverPath = coverPath;
+    public void setCoverBlob(byte[] coverBlob) {
+        this.coverBlob = coverBlob;
     }
 
     public Integer getProgress() {
