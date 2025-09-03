@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { useToast } from "../Toast/toast-context";
 import { AppLogger } from "../Logger";
 import { isBackendUp } from "./BackendConnection";
@@ -21,23 +21,23 @@ export const BackendProvider: React.FC<{children: React.ReactNode}> = ({ childre
   const [backendAvailable, setBackendAvailable] = useState(false);
 
   // Called when backend is up
-  const handleBackendUp = (silent: boolean) => {
+  const handleBackendUp = useCallback((silent: boolean) => {
     setBackendAvailable(true);
     AppLogger.info("Backend reconnected");
     if (!silent) {
       toast?.open("Backend reconnected", "success");   
     }
-  }
+  }, []);
 
   // Called when backend is down
-  const handleBackendDown = (silent: boolean) => {
+  const handleBackendDown = useCallback((silent: boolean) => {
     setBackendAvailable(false);
     AppLogger.warn("Backend status is down - Falling back to offline mode");
     if (!silent) {
       toast?.open("Backend status is down", "error");
       toast?.open("Falling back to offline mode", "info");
     }
-  }
+  }, []);
 
   const refreshBackendStatus = useCallback((silent: boolean) => {
     isBackendUp()
@@ -46,8 +46,13 @@ export const BackendProvider: React.FC<{children: React.ReactNode}> = ({ childre
     );
   }, [handleBackendUp, handleBackendDown]);
 
+  const contextValue = useMemo(() => ({
+    backendAvailable, 
+    refreshBackendStatus
+}), [backendAvailable, refreshBackendStatus]);
+
   return (
-    <BackendContext.Provider value={{ backendAvailable, refreshBackendStatus }}>
+    <BackendContext.Provider value={contextValue}>
       {children}
     </BackendContext.Provider>
   );

@@ -8,6 +8,7 @@ export interface Book {
   progress?: number;
   favorite?: boolean;
   coverBlob?: Blob;
+  fileBlob?: Blob;
 }
 
 export class BackendDB {

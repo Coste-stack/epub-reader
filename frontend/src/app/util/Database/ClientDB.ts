@@ -57,6 +57,39 @@ export class ClientDB {
     }
   }
 
+  static async getBookById(bookId: number): Promise<Book | null> {
+    try {
+      const db = await this.openDb();
+      logger.info(`Retrieving book with ID ${bookId} from local database...`);
+      const transaction = db.transaction(this.STORE_NAME, 'readonly');
+      const store = transaction.objectStore(this.STORE_NAME);
+      const request = store.get(bookId);
+
+      return await new Promise<Book | null>((resolve, reject) => {
+        request.onsuccess = () => {
+          const book = request.result as Book | undefined;
+          if (book) {
+            logger.info(`Successfully loaded book with ID ${bookId} from local database.`);
+            db.close();
+            resolve(book);
+          } else {
+            logger.warn(`No book found with ID ${bookId} in local database.`);
+            resolve(null);
+          }
+          db.close();
+        };
+        request.onerror = () => {
+          logger.error(`Failed to retrieve book with ID ${bookId} from local database.`, request.error);
+          db.close();
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      logger.error(`Unexpected error while retrieving book with ID ${bookId} from local db: `, error);
+      throw error;
+    }
+  }
+
   static async addBooks(books: Book[]): Promise<void> {
     try {
       const db = await this.openDb();

@@ -30,7 +30,11 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       const opfContent = await readContentOpf(zip);
       logger.trace(opfContent); // hidden - for debug
       const data = await extractOpfData(zip);
-      logger.debug("Book data: " + data);
+      const book: Book = {
+        ...data,
+        fileBlob: e.target.files?.[0]
+      }
+      logger.debug("Book data: " + book);
 
       // Add the book
       interface ToastStatus {
@@ -46,14 +50,15 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
         toastType: "success"
       };
 
+      // Add book to backend db
       if (navigator.onLine) {
         refreshBackendStatus(true);
         if (backendAvailable) {
           try {
             logger.info("Adding book to backend database");
-            await BackendDB.addBook(data as Book);
+            await BackendDB.addBook(book);
             logger.info("Uploading cover blob");
-            await BackendDB.uploadCoverBlob(data as Book);
+            await BackendDB.uploadCoverBlob(book);
             status.addedToBackend = true;
           } catch (error) {
             logger.warn("Failed adding book to backend:", error);
@@ -61,9 +66,10 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
         }
       }
 
+      // Add book to client db
       try {
         logger.info("Adding book to client database");
-        await ClientDB.addBook(data as Book);
+        await ClientDB.addBook(book);
         status.addedLocally = true;
       } catch (error) {
         logger.error("Failed adding book to client database:", error);
@@ -71,6 +77,7 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
         status.toastType = "error";
       }
 
+      // Show a toast message
       if (status.addedToBackend && status.addedLocally) {
         status.toastMsg = "Book added successfully!";
       } else if (!status.addedToBackend && status.addedLocally && navigator.onLine) {

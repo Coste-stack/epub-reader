@@ -1,10 +1,12 @@
 import './App.css'
-import { BookList } from '../Book/BookList'
-import EpubUploader from '../Epub/EpubUploader'
 import { useCallback, useEffect, useState } from 'react';
-import { type Book } from '../../util/Database/BackendDB';
+import { Routes, Route } from 'react-router-dom';
 import { handleOnlineRefresh, handleOfflineRefresh } from "../../util/BackendAPI/BookSync";
 import { BackendProvider, useBackend } from '../../util/BackendAPI/BackendContext';
+import { type Book } from '../../util/Database/BackendDB';
+import { BookList } from '../Book/BookList'
+import EpubUploader from '../Epub/EpubUploader'
+import EpubViewer from '../Epub/EpubViewer';
 
 function AppContent() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -38,7 +40,16 @@ function AppContent() {
 function App() {
   return (
     <BackendProvider>
-      <AppContent/>
+      <Routes>
+        <Route
+          path="/"
+          element={<AppContent/>}
+        />
+        <Route
+          path="/viewer/:bookId"
+          element={<EpubViewer />}
+        />
+      </Routes>
     </BackendProvider>
   )
 }

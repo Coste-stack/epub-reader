@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ToastContext, type ToastNotificationVariant } from "./toast-context";
 import "./toast.css";
+import { createPortal } from "react-dom";
 
 // Custom hook for running a callback after a specified timeout
 const timeoutDelay: number = 3000;
@@ -65,34 +66,38 @@ type ToastState = {
 export function ToastProvider({ children }: ToastProviderProperties) {
   const [toasts, setToasts] = useState<ToastState[]>([]);
 
+  const toastPortal = document.getElementById("toast-portal");
+  if (!toastPortal) return;
+
   // Add a new toast to the list
-  function openToast(message: string, type: ToastNotificationVariant = "info") {
+  const openToast = useCallback((message: string, type: ToastNotificationVariant = "info") => {
     const newToast = {
       id: Date.now() + Math.random(),
       message: message,
       type: type,
     };
     setToasts((prevToasts) => [...prevToasts, newToast]);
-  }
+  }, []);
 
   // Remove a toast by its id
-  function closeToast(id: number) {
+  const closeToast = useCallback((id: number) => {
     setToasts((prevToasts) => 
       prevToasts.filter((toast) => toast.id !== id)
     );
-  }
+  }, []);
 
   // Memoize context value to avoid unnecessary renders
   const contextValue = useMemo(() => ({
     open: openToast,
     close: closeToast
-  }), []);
+  }), [openToast, closeToast]);
 
   return (
     <>
       <ToastContext.Provider value={contextValue}>
         {children}
-        <div className="toasts">
+        {createPortal(
+          <div className="toasts">
           {toasts && toasts.map(toast => {
             return (
               <Toast 
@@ -103,7 +108,10 @@ export function ToastProvider({ children }: ToastProviderProperties) {
               />
             )
           })}
-        </div>
+        </div>, 
+        toastPortal
+        )}
+        
       </ToastContext.Provider>
     </>
   )
