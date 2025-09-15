@@ -174,39 +174,4 @@ export class ClientDB {
     }
   }
 
-  static async deleteBookFileBlob(bookId: number): Promise<void> {
-    try {
-      const db = await this.openDb();
-      const transaction = db.transaction(this.STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(this.STORE_NAME);
-      const getRequest = store.get(bookId);
-
-      return await new Promise<void>((resolve, reject) => {
-        getRequest.onsuccess = () => {
-          const book = getRequest.result as Book | undefined;
-          if (!book) {
-            db.close();
-            resolve(); // nothing to delete
-            return;
-          }
-          const updatedBook = { ...book, fileBlob: undefined };
-          store.put(updatedBook).onsuccess = () => {
-            db.close();
-            resolve();
-          };
-          store.put(updatedBook).onerror = (e) => {
-            db.close();
-            reject(e);
-          };
-        };
-        getRequest.onerror = () => {
-          db.close();
-          reject(getRequest.error);
-        };
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
 }

@@ -79,13 +79,6 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
     }
   }
 
-  const handleDeleteClick = async () => {
-    if (book.id) {
-      await ClientDB.deleteBookFileBlob(book.id);
-      setFileBlob(undefined);
-    }
-  };
-
   return (
     <li>
       <div 
@@ -99,10 +92,7 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
       </div>
       <div className="book-handle">
         {fileUrl ? (
-          <>
           <button className="book-button" onClick={handleDownloadClick}>Download</button>
-          <button className="book-button" onClick={handleDeleteClick}>Delete</button>
-          </>
         ) : (
           <>
             <input
