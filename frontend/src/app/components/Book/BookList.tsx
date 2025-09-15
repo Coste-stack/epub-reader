@@ -17,7 +17,10 @@ export const BookList: React.FC<BookListProps> = ({ books }) => (
 const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
   const [coverUrl, setCoverUrl] = useState<string | undefined>(undefined);
   const [fileUrl, setFileUrl] = useState<string | undefined>(undefined);
+
   const [userFile, setUserFile] = useState<File | undefined>(undefined);
+  const [fileBlob, setFileBlob] = useState<Blob | undefined>(book.fileBlob);
+  
   const navigate = useNavigate();
 
   // Get cover url
@@ -31,36 +34,55 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
 
   // Get file url
   useEffect(() => {
-    if (book.fileBlob) {
-      const url = URL.createObjectURL(book.fileBlob);
+    if (fileBlob) {
+      const url = URL.createObjectURL(fileBlob);
       setFileUrl(url);
       return () => URL.revokeObjectURL(url);
     }
-  }, [book.fileBlob]);
+  }, [fileBlob]);
 
   // Navigate to epub viewer
   const handleBookClick = () => {    
-    navigate(`/viewer/${book.id}`);
+    if (fileBlob) {
+      navigate(`/viewer/${book.id}`);
+    } else {
+      AppLogger.warn("Trying to view a book without a file");
+    }
   }
 
+  // Handle user file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setUserFile(e.target.files[0]);
     }
   }
-
-  const handleFileUpload = async () => {
+  const handleUploadClick = async () => {
     if (book.id && userFile) {
       ClientDB.updateBookFile(book.id, userFile)
         .then(() => {
-          book.fileBlob = userFile;
+          setFileBlob(userFile);
         });
     }
   }
 
-  const handleFileDelete = async () => {
+  // Handle user file download
+  const handleDownloadClick = () => {
+    if (fileUrl && fileBlob) {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = `${book.title}.epub`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      AppLogger.warn("File does not exist for download");
+    }
+  }
+
+  const handleDeleteClick = async () => {
     if (book.id) {
       await ClientDB.deleteBookFileBlob(book.id);
+      setFileBlob(undefined);
     }
   };
 
@@ -78,13 +100,8 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
       <div className="book-handle">
         {fileUrl ? (
           <>
-          <a
-            href={fileUrl}
-            download={`${book.title}.epub`}
-          >
-            <button className="book-button">Download</button>
-          </a>
-          <button className="book-button" onClick={handleFileDelete} style={{marginLeft: '8px'}}>Delete</button>
+          <button className="book-button" onClick={handleDownloadClick}>Download</button>
+          <button className="book-button" onClick={handleDeleteClick}>Delete</button>
           </>
         ) : (
           <>
@@ -93,7 +110,7 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
               accept=".epub"
               onChange={handleFileChange}
             />
-            <button className="book-button" onClick={handleFileUpload}>Upload</button>
+            <button className="book-button" onClick={handleUploadClick}>Upload</button>
           </>
         )}
       </div>
