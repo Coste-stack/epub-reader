@@ -14,6 +14,7 @@ export const BookList: React.FC<BookListProps> = ({ books }) => (
 
 const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
   const [coverUrl, setCoverUrl] = useState<string | undefined>();
+  const [fileUrl, setFileUrl] = useState<string | undefined>();
   const navigate = useNavigate();
 
   // Get cover url
@@ -24,6 +25,15 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
       return () => URL.revokeObjectURL(url);
     }
   }, [book.coverBlob]);
+
+  // Get file url
+  useEffect(() => {
+    if (book.fileBlob) {
+      const url = URL.createObjectURL(book.fileBlob);
+      setFileUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [book.fileBlob]);
 
   // Navigate to epub viewer
   const handleBookClick = () => {    
@@ -41,7 +51,14 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
         )}
         <strong>{book.title}</strong> by {book.author}
       </div>
-      <button className="upload-button">Upload</button>
+      {fileUrl && (
+        <a
+          href={fileUrl}
+          download={`${book.title}.epub`}
+        >
+          <button className="book-button">Download</button>
+        </a>
+      )}
     </li>
   );
 };
