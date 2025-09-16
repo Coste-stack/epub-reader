@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import JSZip from "jszip";
 import { EpubAppLogger as logger } from "../../util/Logger";
 import { getChapterRefs, getChapterContent, type Chapter, type ChapterRef } from "../../util/EpubUtil";
@@ -29,10 +29,13 @@ const EpubViewer: React.FC = () => {
   const [loadedChapters, setLoadedChapters] = useState<Chapter[]>([]);
   const [visibleChapterCount, setVisibleChapterCount] = useState<number>(0);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
+
   const [error, setError] = useState<string | null>(null);
   const { bookId } = useParams();
 
-  // Fetch book from db
+  // Fetch book from db by using ID
   useEffect(() => {
     const fetchBook = async () => {
       const foundBook = await ClientDB.getBookById(Number(bookId));
@@ -123,14 +126,44 @@ const EpubViewer: React.FC = () => {
       </div>
   ));
 
+  // Get reading progress from scroll
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const maxScroll = scrollHeight - clientHeight;
+    const newProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+    setScrollProgress(newProgress);
+  }
+
+  const getCalculatedProgress = () => {
+    return (scrollProgress * loadedChapters.length) / chapterRefs.length;
+  }
+
   return (
     <div>
       {error && <div style={{ color: "red" }}>{error}</div>}
-      <InfiniteScroll 
-        listItems={chapterList}
-        lastRowHandler={handleLoadMore}  
-      />
-      
+      <div style={{ 
+        margin: "16px 0", 
+        position: "fixed",
+        left: 0,
+        bottom: 0,  
+      }}>
+        <progress value={getCalculatedProgress()} max={1} />
+        <div>
+          {Math.round(getCalculatedProgress() * 100)}% read
+        </div>
+      </div>
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        style={{ height: "80vh", overflowY: "auto" }}
+      >
+        <InfiniteScroll 
+          listItems={chapterList}
+          lastRowHandler={handleLoadMore}  
+        />
+      </div>
     </div>
   );
 };
