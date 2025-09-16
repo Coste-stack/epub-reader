@@ -2,9 +2,16 @@ import DOMPurify from "dompurify";
 import { EpubAppLogger as logger } from "./Logger";
 import type JSZip from "jszip";
 
+// Types
 export type Chapter = {
   name: string;
   content: string;
+};
+
+// For chapter pre loading
+export type ChapterRef = {
+  name: string;
+  path: string;
 };
 
 const ALLOWED_TAGS = [
@@ -33,45 +40,46 @@ const extractAndSanitize = (content: string, debugLabel?: string): string => {
   }
 };
 
-const getXhtmlFileNames = (zip: JSZip, max: number) => {
+// Chapter file finding helpers
+const getXhtmlFileNames = (zip: JSZip) => {
   const files = Object.keys(zip.files);
   const filtered = files.filter(
     name => name.endsWith(".xhtml") || name.endsWith(".html")
   );
   logger.debug("[getXhtmlFileNames] All files:", files);
   logger.debug("[getXhtmlFileNames] Filtered .xhtml files:", filtered);
-  return filtered.slice(0, max);
+  return filtered;
 };
 
-export const processZip = async (zip: JSZip, maxChapters: number): Promise<Chapter[]> => {
-  const xhtmlFiles = getXhtmlFileNames(zip, maxChapters);
+export async function getChapterRefs(zip: JSZip): Promise<ChapterRef[]> {
+  const xhtmlFiles = getXhtmlFileNames(zip);
   if (xhtmlFiles.length === 0) {
-    logger.warn("[processZip] No .xhtml files found!");
+    logger.warn("No .xhtml files found!");
   }
-  const chapterPromises = xhtmlFiles.map(async (name) => {
-    try {
-      const file = zip.files[name];
-      if (!file) {
-        logger.warn(`[processZip] File not found in zip: ${name}`);
-        return { name, content: "[File not found]" };
-      }
-      const content = await file.async("string");
-      if (!content || content.length < 10) {
-        logger.warn(`[processZip] File ${name} seems empty or too short:`, content);
-      }
-      const sanitized = extractAndSanitize(content, name);
-      return {
-        name,
-        content: sanitized,
-      };
-    } catch (err) {
-      logger.error(`[processZip] Error processing file ${name}:`, err);
-      return { name, content: "[Error extracting this chapter]" };
-    }
-  });
-  return Promise.all(chapterPromises);
-};
+  return xhtmlFiles.map(name => ({
+    name,
+    path: name
+  }));
+}
 
+export async function getChapterContent(zip: JSZip, chapterRef: ChapterRef): Promise<string> {
+  try {
+    const file = zip.files[chapterRef.path];
+    if (!file) {
+      logger.warn(`[getChapterContent] File not found in zip: ${chapterRef.path}`);
+      return "[File not found]";
+    }
+    const content = await file.async("string");
+    if (!content || content.length < 10) {
+      logger.warn(`[getChapterContent] File ${chapterRef.path} seems empty or too short:`, content);
+    }
+    const sanitized = extractAndSanitize(content, chapterRef.name);
+    return sanitized;
+  } catch (err) {
+    logger.error(`[getChapterContent] Error processing file ${chapterRef.path}:`, err);
+    return "[Error extracting this chapter]";
+  }
+}
 
 // Returns the OPF file path by parsing container.xml
 async function getOpfPath(zip: JSZip): Promise<string | null> {
