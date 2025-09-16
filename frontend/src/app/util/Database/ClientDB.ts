@@ -133,10 +133,10 @@ export class ClientDB {
     return this.addBooks([book]);
   }
 
-  static async updateBookFile(bookId: number, fileBlob: Blob): Promise<void> {
+  static async updateBookAttributes(bookId: number, updates: Partial<Book>): Promise<void> {
     try {
       const db = await this.openDb();
-      logger.info(`Updating fileBlob for book with ID ${bookId} in local database...`);
+      logger.info(`Updating book with ID ${bookId} in local database...`);
       const transaction = db.transaction(this.STORE_NAME, 'readwrite');
       const store = transaction.objectStore(this.STORE_NAME);
       const getRequest = store.get(bookId);
@@ -145,31 +145,31 @@ export class ClientDB {
         getRequest.onsuccess = () => {
           const book = getRequest.result as Book | undefined;
           if (!book) {
-            logger.warn(`No book found with ID ${bookId} to update fileBlob`);
+            logger.warn(`No book found with ID ${bookId} to update`);
             reject(new Error(`Book with ID ${bookId} not found`));
             return;
           }
-          const updatedBook = { ...book, fileBlob };
+          const updatedBook = { ...book, ...updates };
           const putRequest = store.put(updatedBook);
           putRequest.onsuccess = () => {
-            logger.info(`Successfully updated fileBlob for book ID ${bookId}`);
+            logger.info(`Successfully updated book with ID ${bookId}`);
             db.close();
             resolve();
           }
           putRequest.onerror = () => {
-            logger.warn(`Failed to update fileBlob for book ID ${bookId}`);
+            logger.warn(`Failed to update book with ID ${bookId}`);
             db.close();
             reject(putRequest.error);
           }
         };
         getRequest.onerror = () => {
-          logger.warn(`Failed to get book for updating fileBlob for book ID ${bookId}`);
+          logger.warn(`Failed to get book for updating ID ${bookId}`);
           db.close();
           reject(getRequest.error);
         }
       });
     } catch (error) {
-      logger.error(`Unexpected error while updating fileBlob for book with ID ${bookId} in local db: `, error);
+      logger.error(`Unexpected error while updating book with ID ${bookId} in local db: `, error);
       throw error;
     }
   }

@@ -58,7 +58,7 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
   }
   const handleUploadClick = async () => {
     if (book.id && userFile) {
-      ClientDB.updateBookFile(book.id, userFile)
+      ClientDB.updateBookAttributes(book.id, { fileBlob: userFile })
         .then(() => {
           setFileBlob(userFile);
         });
