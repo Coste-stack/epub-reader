@@ -15,8 +15,8 @@ function AppContent() {
   const refreshBooks = useCallback((silent: boolean = false) => {
     if (navigator.onLine) {
       refreshBackendStatus(silent);
-      const refresh = backendAvailable ? handleOnlineRefresh : handleOfflineRefresh;
-      refresh(setBooks);
+      handleOnlineRefresh();
+      handleOfflineRefresh(setBooks);
     } else {
       handleOfflineRefresh(setBooks);
     }

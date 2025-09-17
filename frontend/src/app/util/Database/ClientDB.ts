@@ -133,8 +133,9 @@ export class ClientDB {
     return this.addBooks([book]);
   }
 
-  static async updateBookAttributes(bookId: number, updates: Partial<Book>): Promise<void> {
+  static async updateBookAttributes(bookId: number | undefined, updates: Partial<Book>): Promise<void> {
     try {
+      if (!bookId) throw new Error("Book ID is undefined");
       const db = await this.openDb();
       logger.info(`Updating book with ID ${bookId} in local database...`);
       const transaction = db.transaction(this.STORE_NAME, 'readwrite');

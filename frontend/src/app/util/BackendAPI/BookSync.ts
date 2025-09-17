@@ -5,17 +5,13 @@ import { BackendDB, type Book } from "../Database/BackendDB";
 import type { ToastContextValue } from "../Toast/toast-context";
 import type { BackendContextValue } from "./BackendContext";
 
-function areBooksEqual(a: Book[], b: Book[]): boolean {
-  if (a.length !== b.length) return false;
-  // Sort the array by title
-  const aSorted = [...a].sort((b1, b2) => b1.title.localeCompare(b2.title));
-  const bSorted = [...b].sort((b1, b2) => b1.title.localeCompare(b2.title));
-  // Check the object equality
-  for (let i = 0; i < aSorted.length; i++) {
-    if (
-      aSorted[i].title !== bSorted[i].title ||
-      aSorted[i].author !== bSorted[i].author
-    ) return false;
+function areBooksEqual(a: Book, b: Book): boolean {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+
+  for (const key of aKeys) {
+    if (a[key as keyof Book] !== b[key as keyof Book]) return false;
   }
   return true;
 }
@@ -23,23 +19,62 @@ function areBooksEqual(a: Book[], b: Book[]): boolean {
 async function updateLocalDb(backendBooks: Book[]): Promise<void> {
   BookSyncLogger.info("Trying to check if local db is up to date");
   try {
-    const localBooks = await ClientDB.getAllBooks();
-    BookSyncLogger.debug('Books from local db:', localBooks);
-    if (areBooksEqual(backendBooks, localBooks)) {
-      BookSyncLogger.info("Local db is already updated");
-    } else {
-      BookSyncLogger.info("Trying to update local db");
-      await ClientDB.addBooks(backendBooks);
-      BookSyncLogger.info("Local db has been updated");
+    const clientBooks = await ClientDB.getAllBooks();
+    BookSyncLogger.debug('Books from local db:', clientBooks);
+
+    const backendById = new Map(backendBooks.map(book => [book.id, book]));
+    const clientById = new Map(clientBooks.map(book => [book.id, book]));
+
+    // Update client books
+    for (const backendBook of backendBooks) {
+      const clientBook = clientById.get(backendBook.id);
+      if (!clientBook) {
+        // Add the book
+        await ClientDB.addBook(backendBook);
+        BookSyncLogger.info(`Added new book with ID ${backendBook.id}`);
+      } else if (!areBooksEqual(clientBook, backendBook)) {
+        // Update the book
+        await ClientDB.updateBookAttributes(backendBook.id, backendBook);
+        BookSyncLogger.info(`Updated book with ID ${backendBook.id}`);
+      }
+    }
+
+    // Update backend books
+    for (const clientBook of clientBooks) {
+      const backendBook = backendById.get(clientBook.id);
+      if (!backendBook) {
+        // Add the book
+        BookSyncLogger.info("Adding book to backend database");
+        await BackendDB.addBook(clientBook);
+        BookSyncLogger.info("Uploading cover blob");
+        await BackendDB.uploadCoverBlob(clientBook);
+        BookSyncLogger.info("Uploading file blob");
+          await BackendDB.uploadFileBlob(clientBook);
+      } else {
+        // Update the book
+        BookSyncLogger.info("Updating book to backend database");
+        await BackendDB.uploadBook(clientBook, clientBook);
+        if (clientBook.coverBlob && backendBook.coverBlob !== clientBook.coverBlob) {
+          BookSyncLogger.info("Uploading cover blob");
+          await BackendDB.uploadCoverBlob(clientBook);
+        } else {
+          BookSyncLogger.warn("No cover blob to upload");
+        }
+        if (clientBook.fileBlob && backendBook.fileBlob !== clientBook.fileBlob) {
+          BookSyncLogger.info("Uploading file blob");
+          await BackendDB.uploadFileBlob(clientBook);
+        } else {
+          BookSyncLogger.warn("No file blob to upload");
+        }
+      }
+      
     }
   } catch (err) {
     BookSyncLogger.error("Failed to update local db", err);
   }
 }
 
-type SetBooksType = React.Dispatch<React.SetStateAction<Book[]>>;
-
-export async function handleOnlineRefresh(setBooks: SetBooksType): Promise<void> {
+export async function handleOnlineRefresh(): Promise<void> {
   let backendBooks: Book[] = [];
   try {
     // Get books from backend db
@@ -55,7 +90,6 @@ export async function handleOnlineRefresh(setBooks: SetBooksType): Promise<void>
     
     BookSyncLogger.debug('Books from backend db:', backendBooks);
     BookSyncLogger.info("Books refreshed from backend db");
-    setBooks(backendBooks);
   } catch (err) {
     BookSyncLogger.error("Error fetching books from backend", err);
     return; // Exit early if fetching fails
@@ -69,7 +103,7 @@ export async function handleOnlineRefresh(setBooks: SetBooksType): Promise<void>
   }
 };
 
-export async function handleOfflineRefresh(setBooks: SetBooksType): Promise<void> {
+export async function handleOfflineRefresh(setBooks: React.Dispatch<React.SetStateAction<Book[]>>): Promise<void> {
   try {
     // Get books from local db
     const localBooks = await ClientDB.getAllBooks();
