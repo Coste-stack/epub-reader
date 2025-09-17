@@ -149,7 +149,10 @@ export class ClientDB {
             reject(new Error(`Book with ID ${bookId} not found`));
             return;
           }
-          const updatedBook = { ...book, ...updates };
+          const cleanUpdates = Object.fromEntries(
+            Object.entries(updates).filter(([_, v]) => v !== undefined)
+          );
+          const updatedBook = { ...book, ...cleanUpdates };
           const putRequest = store.put(updatedBook);
           putRequest.onsuccess = () => {
             logger.info(`Successfully updated book with ID ${bookId}`);
