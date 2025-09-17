@@ -20,6 +20,7 @@ function isHtmlVisuallyEmpty(html: string) {
 }
 
 const CHAPTER_NUMBER_TO_LOAD = 10;
+const SCROLL_REFRESH_TIMEOUT = 1000;
 
 const EpubViewer: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null);
@@ -31,6 +32,7 @@ const EpubViewer: React.FC = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const scrollUpdateTimeout = useRef<number | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const { bookId } = useParams();
@@ -128,17 +130,48 @@ const EpubViewer: React.FC = () => {
 
   // Get reading progress from scroll
   const handleScroll = () => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const maxScroll = scrollHeight - clientHeight;
-    const newProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
-    setScrollProgress(newProgress);
+    // Skip if timeout is already sheduled
+    if (scrollUpdateTimeout.current) return;
+
+    scrollUpdateTimeout.current = window.setTimeout(() => {
+      const el = scrollContainerRef.current;
+      if (!el) return;
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const maxScroll = scrollHeight - clientHeight;
+      const newProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      setScrollProgress(newProgress);
+      logger.debug("Updated book prop progress: ", newProgress)
+      scrollUpdateTimeout.current = null;
+    }, SCROLL_REFRESH_TIMEOUT);
   }
+
+  // Clear scroll timeout at dismantling
+  useEffect(() => {
+    return () => {
+      if (scrollUpdateTimeout.current) clearTimeout(scrollUpdateTimeout.current);
+    };
+  }, []);
 
   const getCalculatedProgress = () => {
     return (scrollProgress * loadedChapters.length) / chapterRefs.length;
   }
+
+  // Update book progress in database
+  useEffect(() => { 
+    if (!book) return;
+    const updateProgress = () => {
+      if (!book || !book.id) return;
+      ClientDB.updateBookAttributes(book.id, { progress })
+        .then(() => logger.debug("Successfully updated book progress: ", progress))
+        .catch(err => logger.error("Failed to update book progress:", err));
+    }
+    const progress = getCalculatedProgress();
+    if (!book.progress) {
+      updateProgress();
+    } else if (book.progress - progress > 0.1) {
+      updateProgress();
+    }
+  }, [scrollProgress]);
 
   return (
     <div>
