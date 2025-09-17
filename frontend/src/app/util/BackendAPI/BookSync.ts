@@ -82,8 +82,8 @@ export async function handleOfflineRefresh(setBooks: SetBooksType): Promise<void
 };
 
 interface OperationStatus {
-  successfullBackend: boolean;
-  successfullClient: boolean;
+  successfullBackend: boolean,
+  successfullClient: boolean
 }
 
 interface HandleDbOperationsProps {
@@ -91,6 +91,7 @@ interface HandleDbOperationsProps {
   toast: ToastContextValue | null,
   backendOperations: () => Promise<boolean>,
   clientOperations: () => Promise<boolean>,
+  silent: boolean
 }
 
 export async function handleDbOperations({
@@ -98,6 +99,7 @@ export async function handleDbOperations({
   toast,
   backendOperations,
   clientOperations,
+  silent = false
 }: HandleDbOperationsProps) {
   const status: OperationStatus = {
     successfullBackend: false,
@@ -116,6 +118,7 @@ export async function handleDbOperations({
   status.successfullClient = await clientOperations();
 
   // Show a toast message
+  if (silent) return;
   if (status.successfullBackend && status.successfullClient) {
     toast?.open("Operation successfull!", "success");
   } else if (!status.successfullBackend && status.successfullClient) {

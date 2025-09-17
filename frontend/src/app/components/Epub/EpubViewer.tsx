@@ -3,9 +3,12 @@ import JSZip from "jszip";
 import { EpubAppLogger as logger } from "../../util/Logger";
 import { getChapterRefs, getChapterContent, type Chapter, type ChapterRef } from "../../util/EpubUtil";
 import { useParams } from "react-router-dom";
-import type { Book } from "../../util/Database/BackendDB";
+import { BackendDB, type Book } from "../../util/Database/BackendDB";
 import { ClientDB } from "../../util/Database/ClientDB";
 import InfiniteScroll from "../../util/InfiniteScroll/InfiniteScroll";
+import { useToast } from "../../util/Toast/toast-context";
+import { handleDbOperations } from "../../util/BackendAPI/BookSync";
+import { useBackend } from "../../util/BackendAPI/BackendContext";
 
 // Returns true if the HTML contains only empty or invisible elements
 function isHtmlVisuallyEmpty(html: string) {
@@ -23,6 +26,9 @@ const CHAPTER_NUMBER_TO_LOAD = 10;
 const SCROLL_REFRESH_TIMEOUT = 1000;
 
 const EpubViewer: React.FC = () => {
+  const toast = useToast();
+  const backendContext = useBackend();
+
   const [book, setBook] = useState<Book | null>(null);
   const [zip, setZip] = useState<JSZip | null>(null);
 
@@ -140,7 +146,6 @@ const EpubViewer: React.FC = () => {
       const maxScroll = scrollHeight - clientHeight;
       const newProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
       setScrollProgress(newProgress);
-      logger.debug("Updated book prop progress: ", newProgress)
       scrollUpdateTimeout.current = null;
     }, SCROLL_REFRESH_TIMEOUT);
   }
@@ -158,17 +163,43 @@ const EpubViewer: React.FC = () => {
 
   // Update book progress in database
   useEffect(() => { 
-    if (!book) return;
-    const updateProgress = () => {
-      if (!book || !book.id) return;
-      ClientDB.updateBookAttributes(book.id, { progress })
-        .then(() => logger.debug("Successfully updated book progress: ", progress))
-        .catch(err => logger.error("Failed to update book progress:", err));
+    const backendOperations = async (): Promise<boolean> => {
+      if (!book) return false;
+      try {
+        logger.info("Updating book progress in backend database");
+        await BackendDB.uploadBook(book, { progress: book.progress });
+        return true;
+      } catch (error) {
+        logger.warn("Failed updating book progress to backend:", error);
+        return false;
+      }
     }
+
+    const clientOperations = async (book: Book | null): Promise<boolean> => {
+      if (!book || !book.id) return false;
+      try {
+        logger.info("Updating book progress in client database");
+        await ClientDB.updateBookAttributes(book.id, { progress });
+        return true;
+      } catch (error) {
+        logger.warn("Failed updating book progress to client:", error);
+        return false;
+      }
+    }
+
+    const updateProgress = () => handleDbOperations({
+        backendContext,
+        toast,
+        backendOperations: () => backendOperations(), 
+        clientOperations: () => clientOperations(book),
+        silent: false
+    });
+
     const progress = getCalculatedProgress();
+    if (!book) return;
     if (!book.progress) {
       updateProgress();
-    } else if (book.progress - progress > 0.1) {
+    } else if (progress > book.progress) {
       updateProgress();
     }
   }, [scrollProgress]);

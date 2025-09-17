@@ -64,8 +64,9 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       handleDbOperations({
         backendContext: {backendAvailable, refreshBackendStatus}, 
         toast, 
-        backendOperations, 
-        clientOperations
+        backendOperations: () => backendOperations(), 
+        clientOperations: () => clientOperations(),
+        silent: false
       });
 
       onUpload(); // Refresh books using GET API 
