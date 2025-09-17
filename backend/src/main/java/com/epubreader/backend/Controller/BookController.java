@@ -10,7 +10,6 @@ import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,21 +44,6 @@ public class BookController {
         return bookService.save(book);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book updatedBook) {
-        Optional<Book> optionalBook = bookService.findById(id);
-        if (optionalBook.isPresent()) {
-            Book book = optionalBook.get();
-            book.setTitle(updatedBook.getTitle());
-            book.setAuthor(updatedBook.getAuthor());
-            book.setProgress(updatedBook.getProgress());
-            book.setFavorite(updatedBook.getFavorite());
-            return ResponseEntity.ok(bookService.save(book));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         if (bookService.findById(id).isPresent()) {
@@ -70,7 +54,28 @@ public class BookController {
         }
     }
 
-    @PostMapping("/{id}/cover")
+    @PatchMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book updatedBook) {
+        Optional<Book> optionalBook = bookService.findById(id);
+        if (optionalBook.isPresent()) {
+            Book book = optionalBook.get();
+            if (updatedBook.getTitle() != null) {
+                book.setTitle(updatedBook.getTitle());
+            }
+            if (updatedBook.getAuthor() != null) {
+                book.setAuthor(updatedBook.getAuthor());
+            }
+            if (updatedBook.getProgress() != null) {
+                book.setProgress(updatedBook.getProgress());
+            }
+            book.setFavorite(updatedBook.getFavorite());
+            return ResponseEntity.ok(bookService.save(book));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/{id}/cover")
     public ResponseEntity<String> uploadCover(@PathVariable Long id, @RequestParam("cover") MultipartFile multipartFile) throws IOException {
         if (multipartFile.isEmpty()) {
             return ResponseEntity.badRequest().body("Cover file is empty");
@@ -89,7 +94,7 @@ public class BookController {
         return ResponseEntity.ok("Cover uploaded successfully");
     }
 
-    @PostMapping("{id}/upload")
+    @PatchMapping("{id}/upload")
     public ResponseEntity<String> uploadBookFile(@PathVariable Long id, @RequestParam("file") MultipartFile multipartFile) throws IOException {
         if (multipartFile.isEmpty()) {
             return ResponseEntity.badRequest().body("File is empty");

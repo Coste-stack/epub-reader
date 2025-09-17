@@ -17,7 +17,7 @@ public class Book {
     @Lob
     private byte[] coverBlob;
 
-    private Integer progress;
+    private Double progress;
     private LocalDateTime progressSynchedAt;
     private Boolean isFileUploaded;
     private Boolean isFavorite;
@@ -34,11 +34,11 @@ public class Book {
         this.coverBlob = coverBlob;
     }
 
-    public Integer getProgress() {
+    public Double getProgress() {
         return progress;
     }
 
-    public void setProgress(Integer progress) {
+    public void setProgress(Double progress) {
         this.progress = progress;
     }
 
