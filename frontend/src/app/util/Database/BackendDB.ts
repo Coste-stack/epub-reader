@@ -62,7 +62,7 @@ export class BackendDB {
         throw new Error("No coverBlob provided");
       }
 
-      const res = await axios.put<Book>(
+      const res = await axios.patch<Book>(
         `${BACKEND_API_URL}/api/books/${bookId}/cover`, 
         formData,
         {
@@ -84,8 +84,8 @@ export class BackendDB {
       const bookId = await this.getBookId(book);
       if (!bookId) throw new Error("Book not found (no id)");
 
-      const res = await axios.put<Book>(
-        `${BACKEND_API_URL}/api/books${bookId}/upload`, 
+      const res = await axios.patch<Book>(
+        `${BACKEND_API_URL}/api/books/${bookId}/upload`, 
         book.fileBlob
       );
       return res.data;
@@ -103,7 +103,7 @@ export class BackendDB {
       const bookId = await this.getBookId(bookForGet);
       if (!bookId) throw new Error("Book not found (no id)");
 
-      const res = await axios.put<Book>(
+      const res = await axios.patch<Book>(
         `${BACKEND_API_URL}/api/books/${bookId}`, 
         bookForPut
       );
