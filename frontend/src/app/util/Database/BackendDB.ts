@@ -40,18 +40,6 @@ export class BackendDB {
     }
   }
 
-  static async uploadBook(bookId: number, file: File): Promise<Book> {
-    try {
-      const res = await axios.post<Book>(`${BACKEND_API_URL}/api/books${bookId}/upload`, file);
-      return res.data;
-    } catch (error: any) {
-      const backendMessage = error.response?.data && typeof error.response.data === "string"
-          ? error.response.data
-          : error.message;
-      throw new Error("Failed to upload book: " + backendMessage);
-    }
-  }
-
   static async getBookId(bookLocal: Book): Promise<number | undefined> {
     const books = await this.getAllBooks();
     const found = books.find(
@@ -74,7 +62,7 @@ export class BackendDB {
         throw new Error("No coverBlob provided");
       }
 
-      const res = await axios.post<Book>(
+      const res = await axios.put<Book>(
         `${BACKEND_API_URL}/api/books/${bookId}/cover`, 
         formData,
         {
@@ -90,4 +78,41 @@ export class BackendDB {
     }
   }
 
+  static async uploadFileBlob(book: Book): Promise<Book> {
+    try {
+      // Get the book id
+      const bookId = await this.getBookId(book);
+      if (!bookId) throw new Error("Book not found (no id)");
+
+      const res = await axios.put<Book>(
+        `${BACKEND_API_URL}/api/books${bookId}/upload`, 
+        book.fileBlob
+      );
+      return res.data;
+    } catch (error: any) {
+      const backendMessage = error.response?.data && typeof error.response.data === "string"
+          ? error.response.data
+          : error.message;
+      throw new Error("Failed to upload book: " + backendMessage);
+    }
+  }
+
+  static async uploadBook(book: Book): Promise<Book> {
+    try {
+      // Get the book id
+      const bookId = await this.getBookId(book);
+      if (!bookId) throw new Error("Book not found (no id)");
+
+      const res = await axios.put<Book>(
+        `${BACKEND_API_URL}/api/books${bookId}`, 
+        book
+      );
+      return res.data;
+    } catch (error: any) {
+      const backendMessage = error.response?.data && typeof error.response.data === "string"
+          ? error.response.data
+          : error.message;
+      throw new Error("Failed to upload book: " + backendMessage);
+    }
+  }
 }
