@@ -43,6 +43,8 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
           await BackendDB.addBook(book);
           logger.info("Uploading cover blob");
           await BackendDB.uploadCoverBlob(book);
+          logger.info("Uploading file blob");
+          await BackendDB.uploadFileBlob(book);
           return true;
         } catch (error) {
           logger.warn("Failed adding book to backend:", error);

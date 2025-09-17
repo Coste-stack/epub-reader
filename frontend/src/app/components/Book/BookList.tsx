@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import type { Book } from "../../util/Database/BackendDB";
+import { BackendDB, type Book } from "../../util/Database/BackendDB";
 import { useNavigate } from 'react-router-dom';
 import { ClientDB } from "../../util/Database/ClientDB";
-import { AppLogger } from "../../util/Logger";
+import { AppLogger as logger } from "../../util/Logger";
+import { handleDbOperations } from "../../util/BackendAPI/BookSync";
+import { useToast } from "../../util/Toast/toast-context";
+import { useBackend } from "../../util/BackendAPI/BackendContext";
 
 type BookListProps = {
   books: Book[];
@@ -15,6 +18,9 @@ export const BookList: React.FC<BookListProps> = ({ books }) => (
 );
 
 const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
+  const backendContext = useBackend();
+  const toast = useToast();
+  
   const [coverUrl, setCoverUrl] = useState<string | undefined>(undefined);
   const [fileUrl, setFileUrl] = useState<string | undefined>(undefined);
 
@@ -46,9 +52,42 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
     if (fileBlob) {
       navigate(`/viewer/${book.id}`);
     } else {
-      AppLogger.warn("Trying to view a book without a file");
+      logger.warn("Trying to view a book without a file");
     }
   }
+
+  const backendOperations = async (): Promise<boolean> => {
+    if (!book || !userFile) return false;
+    try {
+      logger.info("Updating book file in backend database");
+      await BackendDB.uploadFileBlob(book);
+      return true;
+    } catch (error) {
+      logger.warn("Failed updating book file to backend:", error);
+      return false;
+    }
+  }
+
+  const clientOperations = async (book: Book | null): Promise<boolean> => {
+    if (!book || !book.id || !userFile) return false;
+    try {
+      logger.info("Updating book file in client database");
+      await ClientDB.updateBookAttributes(book.id, { fileBlob: userFile });
+      setFileBlob(userFile);
+      return true;
+    } catch (error) {
+      logger.warn("Failed updating book file to client:", error);
+      return false;
+    }
+  }
+
+  const uploadBookFile = () => handleDbOperations({
+    backendContext,
+    toast,
+    backendOperations: () => backendOperations(), 
+    clientOperations: () => clientOperations(book),
+    silent: false
+  });
 
   // Handle user file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,12 +96,7 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
     }
   }
   const handleUploadClick = async () => {
-    if (book.id && userFile) {
-      ClientDB.updateBookAttributes(book.id, { fileBlob: userFile })
-        .then(() => {
-          setFileBlob(userFile);
-        });
-    }
+    uploadBookFile();
   }
 
   // Handle user file download
@@ -75,7 +109,7 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
       link.click();
       document.body.removeChild(link);
     } else {
-      AppLogger.warn("File does not exist for download");
+      logger.warn("File does not exist for download");
     }
   }
 

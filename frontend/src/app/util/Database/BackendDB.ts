@@ -78,6 +78,25 @@ export class BackendDB {
     }
   }
 
+  static async uploadFileBlob(book: Book): Promise<Book> {
+    try {
+      // Get the book id
+      const bookId = await this.getBookId(book);
+      if (!bookId) throw new Error("Book not found (no id)");
+
+      const res = await axios.put<Book>(
+        `${BACKEND_API_URL}/api/books${bookId}/upload`, 
+        book.fileBlob
+      );
+      return res.data;
+    } catch (error: any) {
+      const backendMessage = error.response?.data && typeof error.response.data === "string"
+          ? error.response.data
+          : error.message;
+      throw new Error("Failed to upload book: " + backendMessage);
+    }
+  }
+
   static async uploadBook(bookForGet: Book, bookForPut: Partial<Book>): Promise<Book> {
     try {
       // Get the book id
