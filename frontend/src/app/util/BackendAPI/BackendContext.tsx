@@ -3,7 +3,7 @@ import { useToast } from "../Toast/toast-context";
 import { AppLogger } from "../Logger";
 import { isBackendUp } from "./BackendConnection";
 
-type BackendContextValue = {
+export type BackendContextValue = {
   backendAvailable: boolean;
   refreshBackendStatus: (silent: boolean) => void;
 };
@@ -18,7 +18,7 @@ export const useBackend = () => {
 
 export const BackendProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const toast = useToast();
-  const [backendAvailable, setBackendAvailable] = useState(false);
+  const [backendAvailable, setBackendAvailable] = useState<boolean>(false);
 
   // Called when backend is up
   const handleBackendUp = useCallback((silent: boolean) => {

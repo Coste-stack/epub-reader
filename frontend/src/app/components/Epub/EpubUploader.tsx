@@ -1,11 +1,12 @@
 import JSZip from "jszip";
 import { readContentOpf, extractOpfData } from "../../util/EpubUtil";
 import { EpubAppLogger as logger } from "../../util/Logger";
-import { useToast, type ToastNotificationVariant } from "../../util/Toast/toast-context";
+import { useToast } from "../../util/Toast/toast-context";
 import { extractUserMessage } from "../../util/ExtractUserMessage";
 import { useBackend } from "../../util/BackendAPI/BackendContext";
 import { BackendDB, type Book } from "../../util/Database/BackendDB";
 import { ClientDB } from "../../util/Database/ClientDB";
+import { handleDbOperations } from "../../util/BackendAPI/BookSync";
 
 type EpubUploaderProps = {
   onUpload: () => void;
@@ -36,57 +37,36 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       }
       logger.debug("Book data: " + book);
 
-      // Add the book
-      interface ToastStatus {
-        addedToBackend: boolean;
-        addedLocally: boolean;
-        toastMsg: string;
-        toastType: ToastNotificationVariant;
-      }
-      const status: ToastStatus = {
-        addedToBackend: false,
-        addedLocally: false,
-        toastMsg: "",
-        toastType: "success"
-      };
-
-      // Add book to backend db
-      if (navigator.onLine) {
-        refreshBackendStatus(true);
-        if (backendAvailable) {
-          try {
-            logger.info("Adding book to backend database");
-            await BackendDB.addBook(book);
-            logger.info("Uploading cover blob");
-            await BackendDB.uploadCoverBlob(book);
-            status.addedToBackend = true;
-          } catch (error) {
-            logger.warn("Failed adding book to backend:", error);
-          }
+      const backendOperations = async (): Promise<boolean> => {
+        try {
+          logger.info("Adding book to backend database");
+          await BackendDB.addBook(book);
+          logger.info("Uploading cover blob");
+          await BackendDB.uploadCoverBlob(book);
+          return true;
+        } catch (error) {
+          logger.warn("Failed adding book to backend:", error);
+          return false;
         }
       }
 
-      // Add book to client db
-      try {
-        logger.info("Adding book to client database");
-        await ClientDB.addBook(book);
-        status.addedLocally = true;
-      } catch (error) {
-        logger.error("Failed adding book to client database:", error);
-        status.toastMsg = "Failed to add book to client database";
-        status.toastType = "error";
+      const clientOperations = async (): Promise<boolean> => {
+        try {
+          logger.info("Adding book to client database");
+          await ClientDB.addBook(book);
+          return true;
+        } catch (error) {
+          logger.error("Failed adding book to client database:", error);
+          return false;
+        }
       }
 
-      // Show a toast message
-      if (status.addedToBackend && status.addedLocally) {
-        status.toastMsg = "Book added successfully!";
-      } else if (!status.addedToBackend && status.addedLocally && navigator.onLine) {
-        status.toastMsg = "Book added locally (backend unavailable)";
-      } else if (!navigator.onLine && status.addedLocally) {
-        status.toastMsg = "Book added locally (offline mode)";
-      }
-
-      if (status.toastMsg) toast?.open(status.toastMsg, status.toastType);
+      handleDbOperations({
+        backendContext: {backendAvailable, refreshBackendStatus}, 
+        toast, 
+        backendOperations, 
+        clientOperations
+      });
 
       onUpload(); // Refresh books using GET API 
     } catch (err) {

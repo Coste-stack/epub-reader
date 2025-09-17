@@ -2,6 +2,8 @@ import { base64ToBlob } from "../EpubUtil";
 import { BookSyncLogger } from "../Logger"
 import { ClientDB } from "../Database/ClientDB";
 import { BackendDB, type Book } from "../Database/BackendDB";
+import type { ToastContextValue } from "../Toast/toast-context";
+import type { BackendContextValue } from "./BackendContext";
 
 function areBooksEqual(a: Book[], b: Book[]): boolean {
   if (a.length !== b.length) return false;
@@ -78,3 +80,59 @@ export async function handleOfflineRefresh(setBooks: SetBooksType): Promise<void
     BookSyncLogger.error("Error refreshing books from local DB", err);
   }
 };
+
+interface OperationStatus {
+  successfullBackend: boolean;
+  successfullClient: boolean;
+}
+
+interface HandleDbOperationsProps {
+  backendContext: BackendContextValue,
+  toast: ToastContextValue | null,
+  backendOperations: () => Promise<boolean>,
+  clientOperations: () => Promise<boolean>,
+}
+
+export async function handleDbOperations({
+  backendContext,
+  toast,
+  backendOperations,
+  clientOperations,
+}: HandleDbOperationsProps) {
+  const status: OperationStatus = {
+    successfullBackend: false,
+    successfullClient: false,
+  };
+
+  // Perform backend db operations
+  if (navigator.onLine) {
+    backendContext.refreshBackendStatus(true);
+    if (backendContext.backendAvailable) {
+      status.successfullBackend = await backendOperations();
+    }
+  }
+
+  // Perform client db operations
+  status.successfullClient = await clientOperations();
+
+  // Show a toast message
+  if (status.successfullBackend && status.successfullClient) {
+    toast?.open("Operation successfull!", "success");
+  } else if (!status.successfullBackend && status.successfullClient) {
+    if (navigator.onLine) {
+      if (!backendContext.backendAvailable) {
+        toast?.open("Operation successfull locally", "success");
+        toast?.open("Backend unavailable", "warning");
+      } else {
+        toast?.open("Operation successfull locally", "success");
+        toast?.open("Operation failed on backend", "error");
+      }
+    } else {
+      toast?.open("Operation successfull locally", "success");
+      toast?.open("Offline mode", "warning");
+    }
+  } else {
+    toast?.open("Operation failed locally", "error");
+    toast?.open("Operation failed on backend", "error");
+  }
+}
