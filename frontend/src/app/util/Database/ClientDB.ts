@@ -12,11 +12,18 @@ export class ClientDB {
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
       request.onupgradeneeded = () => {
         const db = request.result;
+        let store: IDBObjectStore;
         if (!db.objectStoreNames.contains(this.STORE_NAME)) {
-          db.createObjectStore(this.STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          store = db.createObjectStore(this.STORE_NAME, { keyPath: 'id', autoIncrement: true });
           logger.info(`Object store '${this.STORE_NAME}' created in IndexedDB '${this.DB_NAME}'.`);
         } else {
+          store = request.transaction!.objectStore(this.STORE_NAME);
           logger.info(`Object store '${this.STORE_NAME}' already exists in IndexedDB '${this.DB_NAME}'.`);
+        }
+        // Create compound index for title and author (unique constraint)
+        if (!store.indexNames.contains('title_author')) {
+          store.createIndex('title_author', ['title', 'author'], { unique: true });
+          logger.info("Compound index 'title_author' created on 'books' store.");
         }
       };
       request.onsuccess = () => {
@@ -102,14 +109,26 @@ export class ClientDB {
       const transaction = db.transaction(this.STORE_NAME, 'readwrite');
       const store = transaction.objectStore(this.STORE_NAME);
 
-      books.forEach(book => {
-        logger.debug("Saving book:", book);
-        if (typeof book.id === 'undefined') {
+      // Helper - if a book with the same author and title exists
+      const bookExists = (book: Book) => {
+        return new Promise<boolean>((resolve, reject) => {
+          const index = store.index('title_author');
+          const request = index.get([book.title, book.author]);
+          request.onsuccess = () => resolve(!!request.result);
+          request.onerror = () => reject(request.error);
+        });
+      };
+
+      for (const book of books) {
+        const exists = await bookExists(book);
+        if (!exists) {
+          logger.debug("Saving new book: ", book);
           store.add(book);
         } else {
+          logger.debug("Book already exists, updating: ", book);
           store.put(book);
         }
-      });
+      }
 
       return await new Promise<void>((resolve, reject) => {
         transaction.oncomplete = () => {
