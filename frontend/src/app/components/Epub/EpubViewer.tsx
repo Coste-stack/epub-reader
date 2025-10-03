@@ -22,7 +22,7 @@ function isHtmlVisuallyEmpty(html: string) {
   return true;
 }
 
-const CHAPTER_NUMBER_TO_LOAD = 10;
+const CHAPTER_NUMBER_TO_LOAD = 1;
 const SCROLL_REFRESH_TIMEOUT = 1000;
 
 const EpubViewer: React.FC = () => {
@@ -139,13 +139,44 @@ const EpubViewer: React.FC = () => {
     // Skip if timeout is already sheduled
     if (scrollUpdateTimeout.current) return;
 
-    scrollUpdateTimeout.current = window.setTimeout(() => {
+    const getScrollProgress = (): number | undefined => {
       const el = scrollContainerRef.current;
-      if (!el) return;
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const maxScroll = scrollHeight - clientHeight;
-      const newProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
-      setScrollProgress(newProgress);
+      if (!el || loadedChapters.length === 0) return;
+
+      const children = Array.from(el.children);
+      let chapterIndex = 0;
+      let chapterFraction = 0;
+
+      const visibleBottom = el.scrollTop + el.clientHeight;
+
+      for (let i = children.length - 1; i >= 0; i--) {
+        const child = children[i] as HTMLElement;
+        const chapterStart = child.offsetTop;
+        const chapterHeight = child.offsetHeight;
+        //console.log({i, chapterStart, chapterHeight, visibleBottom});
+
+        if (chapterStart <= visibleBottom) {
+          chapterIndex = i;
+          const scrollInChapter = Math.min(visibleBottom - chapterStart, chapterHeight);
+          //console.log({scrollInChapter, chapterHeight});
+          
+          chapterFraction = chapterHeight > 0 
+            ? Math.max(0, scrollInChapter / chapterHeight)
+            : 1;
+          break;
+        }
+      }
+      //console.log({chapterIndex, chapterFraction});
+
+      // Progress = chapters completed + fraction of current chapter
+      return chapterIndex + chapterFraction;
+    }
+
+    scrollUpdateTimeout.current = window.setTimeout(() => {
+      const newScrollProgress = getScrollProgress();
+      if (newScrollProgress) {
+        setScrollProgress(newScrollProgress);
+      }
       scrollUpdateTimeout.current = null;
     }, SCROLL_REFRESH_TIMEOUT);
   }
@@ -157,17 +188,14 @@ const EpubViewer: React.FC = () => {
     };
   }, []);
 
-  const getCalculatedProgress = () => {
-    return (scrollProgress * loadedChapters.length) / chapterRefs.length;
-  }
-
   // Update book progress in database
   useEffect(() => { 
+    console.log(scrollProgress);
     const backendOperations = async (): Promise<boolean> => {
       if (!book) return false;
       try {
         logger.info("Updating book progress in backend database");
-        await BackendDB.uploadBook(book, { progress: book.progress });
+        await BackendDB.uploadBook(book, { progress: scrollProgress });
         return true;
       } catch (error) {
         logger.warn("Failed updating book progress to backend:", error);
@@ -179,7 +207,7 @@ const EpubViewer: React.FC = () => {
       if (!book || !book.id) return false;
       try {
         logger.info("Updating book progress in client database");
-        await ClientDB.updateBookAttributes(book.id, { progress });
+        await ClientDB.updateBookAttributes(book.id, { progress: scrollProgress });
         return true;
       } catch (error) {
         logger.warn("Failed updating book progress to client:", error);
@@ -195,11 +223,10 @@ const EpubViewer: React.FC = () => {
         silent: false
     });
 
-    const progress = getCalculatedProgress();
     if (!book) return;
     if (!book.progress) {
       updateProgress();
-    } else if (progress > book.progress) {
+    } else if (scrollProgress > book.progress) {
       updateProgress();
     }
   }, [scrollProgress]);
@@ -207,17 +234,6 @@ const EpubViewer: React.FC = () => {
   return (
     <div>
       {error && <div style={{ color: "red" }}>{error}</div>}
-      <div style={{ 
-        margin: "16px 0", 
-        position: "fixed",
-        left: 0,
-        bottom: 0,  
-      }}>
-        <progress value={getCalculatedProgress()} max={1} />
-        <div>
-          {Math.round(getCalculatedProgress() * 100)}% read
-        </div>
-      </div>
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
