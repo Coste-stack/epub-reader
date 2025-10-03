@@ -78,7 +78,8 @@ const EpubViewer: React.FC = () => {
         const fetchedZip = await JSZip.loadAsync(blob);
         logger.debug("Loaded zip, files:", Object.keys(fetchedZip.files));
 
-        const chapters = await getChapterRefs(fetchedZip);
+        const foundChapters = await getChapterRefs(fetchedZip);
+        const chapters = foundChapters.slice(book.progress ? book.progress : 0);
         setZip(fetchedZip);
         setChapterRefs(chapters);
         setVisibleChapterCount(CHAPTER_NUMBER_TO_LOAD);
