@@ -46,11 +46,11 @@ export function useScrollProgress(
     };
     
     if (!hasScrolledToProgress.current && loadedChapters.length > 0) {
+      hasScrolledToProgress.current = true;
       if (book && book.progress) {
         const decimalProgress = book.progress - Math.floor(book.progress);
         //console.log(decimalProgress);
         scrollToProgress(decimalProgress);
-        hasScrolledToProgress.current = true;
       }
     }
   }, [loadedChapters.length]);

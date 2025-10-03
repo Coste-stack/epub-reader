@@ -20,15 +20,10 @@ function InfiniteScroll({ listItems, lastRowHandler }: InfiniteScrollProps) {
     }, [lastRowInView]);
 
     const Elements = listItems.map((listItem, i) => {
-        const props: React.HTMLAttributes<HTMLDivElement> = {};
         if (i === listItems.length - 1) {
-          (props as any).ref = lastRowRef;
+          return <div ref={lastRowRef} key={(listItem as any).key}>{listItem}</div>;
         }
-        return (
-          <div key={i} {...props}>
-              {listItem}
-          </div>
-        );
+        return listItem;
     });
     return (<>{Elements}</>);
 }

@@ -17,7 +17,7 @@ export type ChapterRef = {
 const ALLOWED_TAGS = [
   "b", "i", "em", "strong", "u",
   "h1", "h2", "h3", "h4", "h5", "h6",
-  "p", "br", "ul", "ol", "li", "div", "span", "blockquote"
+  "p", "br", "ul", "ol", "li", "div", "span", "blockquote", "img"
 ];
 
 // Utility to extract and sanitize html content from an xhtml string
@@ -39,6 +39,31 @@ const extractAndSanitize = (content: string, debugLabel?: string): string => {
     return "";
   }
 };
+
+// Enhances HTML by embedding images referenced in the zip
+async function embedImagesInHtml(html: string, zip: JSZip, opfPath: string): Promise<string> {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const imgs = doc.querySelectorAll("img");
+
+  for (const img of imgs) {
+    const src = img.getAttribute("src");
+    if (src) {
+      const file = findZipFile(zip, opfPath, src);
+      if (file) {
+        const arr = await file.async("uint8array");
+        const mimeType = src.endsWith(".png")
+          ? "image/png"
+          : src.endsWith(".gif")
+          ? "image/gif"
+          : "image/jpeg"; // Fallback
+        const base64 = uint8ToBase64(arr);
+        img.setAttribute("src", `data:${mimeType};base64,${base64}`);
+      }
+    }
+  }
+  return doc.body.innerHTML;
+}
 
 // Chapter file finding helpers
 const getXhtmlFileNames = (zip: JSZip) => {
@@ -74,7 +99,11 @@ export async function getChapterContent(zip: JSZip, chapterRef: ChapterRef): Pro
       logger.warn(`[getChapterContent] File ${chapterRef.path} seems empty or too short:`, content);
     }
     const sanitized = extractAndSanitize(content, chapterRef.name);
-    return sanitized;
+    // Embed images
+    const opfPath = await getOpfPath(zip);
+    if (!opfPath) return sanitized;
+    const enhanced = await embedImagesInHtml(sanitized, zip, opfPath);
+    return enhanced;
   } catch (err) {
     logger.error(`[getChapterContent] Error processing file ${chapterRef.path}:`, err);
     return "[Error extracting this chapter]";
@@ -197,6 +226,15 @@ export async function extractOpfData(zip: JSZip) {
     author: getText("creator"),
     coverBlob,
   };
+}
+
+// Convert Uint8Array to base64 string
+function uint8ToBase64(uint8: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < uint8.length; i++) {
+    binary += String.fromCharCode(uint8[i]);
+  }
+  return window.btoa(binary);
 }
 
 export function base64ToBlob(base64: string, mimeType: string = "image/png"): Blob {

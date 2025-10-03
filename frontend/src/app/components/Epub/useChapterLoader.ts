@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getChapterContent, type Chapter, type ChapterRef } from "../../util/EpubUtil";
 import JSZip from "jszip";
 
-const CHAPTER_NUMBER_TO_LOAD = 1;
+const CHAPTER_NUMBER_TO_LOAD = 3;
 
 type UseChaptersLoaderResult = {
   loadedChapters: Chapter[];
@@ -25,15 +25,20 @@ export function useChaptersLoader(
   // Fetch chapter content
   useEffect(() => {
     if (!zip || chapterRefs.length === 0) return;
+    console.log({chapterRefs});
     const needToLoad = chapterRefs.slice(loadedChapters.length, visibleChapterCount);
     if (needToLoad.length === 0) return;
 
     Promise.all(
-      needToLoad.map(async (ref) => ({
-        name: ref.name,
-        content: await getChapterContent(zip, ref),
-      }))
+      needToLoad.map(async (ref) => {
+        const content = await getChapterContent(zip, ref);
+        return {
+          name: ref.name,
+          content: content
+        }
+      })
     ).then(newChapters => {
+      console.log({loadedChapters: newChapters});
       setLoadedChapters(prev => [...prev, ...newChapters]);
     });
   }, [zip, chapterRefs, visibleChapterCount, loadedChapters.length]);
