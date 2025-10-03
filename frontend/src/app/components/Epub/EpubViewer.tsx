@@ -217,8 +217,7 @@ const EpubViewer: React.FC = () => {
   }, []);
 
   // Update book progress in database
-  useEffect(() => { 
-    console.log(scrollProgress);
+  useEffect(() => {
     const backendOperations = async (): Promise<boolean> => {
       if (!book) return false;
       try {
