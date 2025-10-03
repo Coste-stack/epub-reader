@@ -135,6 +135,33 @@ const EpubViewer: React.FC = () => {
       </div>
   ));
 
+  useEffect(() => {
+    const scrollToProgress = (targetProgress: number) => {
+      const el = scrollContainerRef.current;
+      if (!el || loadedChapters.length === 0) return;
+
+      const chapterIndex = Math.floor(targetProgress);
+      const chapterFraction = targetProgress - chapterIndex;
+
+      const chapterElement = el.children[chapterIndex] as HTMLElement | undefined;
+      if (!chapterElement) return;
+
+      const chapterStart = chapterElement.offsetTop;
+      const chapterHeight = chapterElement.offsetHeight;
+      const scrollTop = chapterStart + chapterHeight * chapterFraction - el.clientHeight;
+
+      el.scrollTo({ top: scrollTop, behavior: "smooth" });
+    };
+    
+    if (loadedChapters.length > 0) {
+      if (book && book.progress) {
+        const decimalProgress = book.progress - Math.floor(book.progress);
+        //console.log(decimalProgress);
+        scrollToProgress(decimalProgress);
+      }
+    }
+  }, [loadedChapters]);
+
   // Get reading progress from scroll
   const handleScroll = () => {
     // Skip if timeout is already sheduled
