@@ -1,12 +1,113 @@
+:root {
+  color: black;
+}
+
+body {
+  background-color: #b8b8b8;
+}
+
 #root {
+  background-color: #ffff;
   max-width: 1280px;
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+#root > * {
+  padding: 0 5vw;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  height: 10vh;
+  background-color: #4c3d38;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 img {
   max-width: 100%;
   height: auto;
   display: block;
+}
+
+ul.book-list {
+  padding: 0;
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1.5em;
+}
+
+li.book {
+  list-style-type: none; 
+  width: clamp(10em, 80%, 25rem);
+  height: 24rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.book .cover {
+  flex: 0 0 60%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.book .cover img {
+  flex: 0 0 80%;
+  object-fit: cover;
+}
+
+.book .details {
+  flex: 0 0 30%;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.book .details * {
+  margin: 0;
+  text-wrap: balance;
+}
+
+.book .details .title {
+  color: black;
+  font-weight: 600;
+}
+
+.book .details .author {
+  color: #a8aaac;
+  font-size: 0.9em;
+}
+
+.book-button, .upload-file {
+  background-color: #14af9d;
+  border-radius: 0.5rem;
+  aspect-ratio: 1;
+}
+
+.book-button {
+  width: 2rem;
+  padding: 0.25rem;
+}
+
+.upload-file {
+  width: 3.5rem;
+  padding: 0.25vw;
+  cursor: pointer;
+}
+
+.upload-file * {
+  cursor: pointer;
 }

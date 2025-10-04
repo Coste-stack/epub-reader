@@ -81,8 +81,17 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
   };
 
   return (
-    <div>
-      <input type="file" accept=".epub" onChange={handleFile} />
+    <div className="upload-file">
+      <label htmlFor="epub-upload">
+        <img src="assets/upload_black.png" alt="Upload epub file"/>
+        <input
+          id="epub-upload"
+          type="file"
+          accept=".epub"
+          onChange={handleFile}
+          style={{ display: 'none' }}
+        />
+      </label>
     </div>
   );
 };

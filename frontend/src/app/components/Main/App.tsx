@@ -8,6 +8,18 @@ import { BookList } from '../Book/BookList'
 import EpubUploader from '../Epub/EpubUploader'
 import EpubViewer from '../Epub/EpubViewer';
 
+type HeaderProps = {
+  refreshBooks: (silent?: boolean) => void;
+};
+
+function Header({ refreshBooks }: HeaderProps) {
+  return (
+    <header>
+      <EpubUploader onUpload={refreshBooks} />
+    </header>
+  )
+}
+
 function AppContent() {
   const [books, setBooks] = useState<Book[]>([]);
   const { backendAvailable, refreshBackendStatus } = useBackend();
@@ -33,8 +45,10 @@ function AppContent() {
 
   return (
     <>
-      <EpubUploader onUpload={refreshBooks} />
-      <BookList books={books} />
+      <Header refreshBooks={refreshBooks} />
+      <main>
+        <BookList books={books} />
+      </main>
     </>
   )
 }
