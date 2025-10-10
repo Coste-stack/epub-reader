@@ -124,12 +124,14 @@ const EpubViewer: React.FC = () => {
 
   return (
     <div id="viewer-content">
-      <header>
-        <ViewerHeader 
-          isMenuFocused={isMenuFocused} 
-          setSettingsOpen={setSettingsOpen} 
-        />
-      </header>
+      {isMenuFocused && (
+        <header>
+          <ViewerHeader 
+            isMenuFocused={isMenuFocused} 
+            setSettingsOpen={setSettingsOpen} 
+          />
+        </header>
+      )}
       <main>
         <TextScroller handleMenuFocus={handleMenuFocus} />
       </main>

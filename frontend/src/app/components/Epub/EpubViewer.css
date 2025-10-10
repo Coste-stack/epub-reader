@@ -1,12 +1,22 @@
 #viewer-content {
   position: relative;
   max-width: 100vw;
+  height: 100vh;
 }
 
 #viewer-content header {
-  position: sticky;
+  position: absolute;
   top: 0;
+  height: 3.5rem;
   width: 100%;
+  background: transparent;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#viewer-content main {
+  position: relative;
+  z-index: 0;
 }
 
 #viewer-content header .interactable-container {
@@ -14,14 +24,18 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  pointer-events: auto;
 }
 
 #viewer-content header .interactable-container.hidden {
   visibility: hidden;
+  pointer-events: none;
 }
 
-#viewer-content header .interactable-container.active {
-  background-color: #a8aaac63;
+#viewer-content header .interactable-container.active,
+.settings-popup {
+  background-color: rgba(168, 170, 172, 0.4);
+  backdrop-filter: blur(1px);
 }
 
 #viewer-content .interactable {
@@ -44,7 +58,6 @@
   width: 100%;
   height: 16rem;
   padding: 0.5rem 0;
-  background-color: #a8aaac63;
 }
 
 .settings-popup-content .interactable {
@@ -54,6 +67,7 @@
 }
 
 .infinite-scroll {
+  height: 100vh;
   padding: 0 0.5rem;
   overflow-y: auto;
 }
