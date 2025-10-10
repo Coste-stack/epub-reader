@@ -5,8 +5,13 @@ import { useScrollProgress } from "./useScrollProgress";
 import { useChaptersLoader } from "./useChapterLoader";
 import { useBookLoader } from "./useBookLoader";
 import { Chapter } from "./Chapter";
+import { useNavigate } from 'react-router-dom';
 
-const TextScroller: React.FC = () => {
+type TextScrollerProps = {
+  handleMenuFocus: () => void;
+}
+
+const TextScroller: React.FC<TextScrollerProps> = ({ handleMenuFocus }) => {
   const [error, setError] = useState<string | null>(null);
   
   const { book, zip, chapterRefs } = 
@@ -28,7 +33,10 @@ const TextScroller: React.FC = () => {
   )), [loadedChapters]);
 
   return (
-    <div className="text-scroller">
+    <div 
+      className="text-scroller"
+      onClick={handleMenuFocus}
+    >
       {error && <div style={{ color: "red" }}>{error}</div>}
       <div 
         ref={scrollContainerRef}
@@ -45,45 +53,87 @@ const TextScroller: React.FC = () => {
 };
 
 type HeaderProps = {
-  isFocused: boolean
+  isMenuFocused: boolean;
+  setSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ViewerHeader: React.FC<HeaderProps> = ({ isFocused }) => {
-  const visibilityState = isFocused ? "active" : "hidden";
+const ViewerHeader: React.FC<HeaderProps> = ({ isMenuFocused, setSettingsOpen }) => {
+  const navigate = useNavigate();
+  const visibilityState = isMenuFocused ? "active" : "hidden";
+
+  const handleSettingsClick = () => {
+    setSettingsOpen(prev => !prev);
+  }
+
+  const handleExit = () => {
+    navigate("/");
+  }
 
   return (
     <div 
       className={`interactable-container ${visibilityState}`}
     >
-      <div className="interactable">
+      <div 
+        className="interactable"
+        onClick={handleSettingsClick}
+      >
         <img src="/assets/settings_black.png" alt="settings"/>
       </div>
-      <div className="interactable">
+      <div 
+        className="interactable"
+        onClick={handleExit}
+      >
         <img src="/assets/close_black.png" alt="close"/>
       </div>
     </div>
   )
 }
 
-const EpubViewer: React.FC = () => {
-  const [isFocused, setIsFocused] = useState(false);
+type SettingsPopupProps = {
+  onClose: () => void;
+}
 
-  const handleFocus = () => {
-    console.log("FOCUS: ", isFocused);
-    setIsFocused(prev => !prev);
+// TODO: Add go to specific page
+// TODO: Add change font option from a selector
+const SettingsPopup: React.FC<SettingsPopupProps> = ({ onClose }) => (
+  <div className="settings-popup">
+    <div className="settings-popup-content">
+      <div 
+        className="interactable"
+        onClick={onClose}
+      >
+        <img src="/assets/close_black.png" alt="close"/>
+      </div>
+      <p>Settings</p>
+    </div>
+  </div>
+);
+
+const EpubViewer: React.FC = () => {
+  const [isMenuFocused, setIsMenuFocused] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const handleMenuFocus = () => {
+    setIsMenuFocused(prev => !prev);
+    setSettingsOpen(false);
+  }
+
+  const onClose = () => {
+    setSettingsOpen(false);
   }
 
   return (
-    <div 
-      id="viewer-content"
-      onClick={handleFocus}
-    >
+    <div id="viewer-content">
       <header>
-        <ViewerHeader isFocused={isFocused} />
+        <ViewerHeader 
+          isMenuFocused={isMenuFocused} 
+          setSettingsOpen={setSettingsOpen} 
+        />
       </header>
       <main>
-        <TextScroller />
+        <TextScroller handleMenuFocus={handleMenuFocus} />
       </main>
+      {settingsOpen && <SettingsPopup onClose={onClose} />}
     </div>
   )
 }
