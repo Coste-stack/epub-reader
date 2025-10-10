@@ -11,16 +11,20 @@ body {
   max-width: 1280px;
   min-height: 100vh;
   margin: 0 auto;
+}
+
+#app-content {
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 5rem;
 }
 
-#root > * {
+#app-content > * {
   padding: 0 5vw;
 }
 
-header {
+#app-content header {
   position: sticky;
   top: 0;
   height: 10vh;

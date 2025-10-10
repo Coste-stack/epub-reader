@@ -44,12 +44,12 @@ function AppContent() {
   }, [refreshBooks]);
 
   return (
-    <>
+    <div id="app-content">
       <Header refreshBooks={refreshBooks} />
       <main>
         <BookList books={books} />
       </main>
-    </>
+    </div>
   )
 }
 

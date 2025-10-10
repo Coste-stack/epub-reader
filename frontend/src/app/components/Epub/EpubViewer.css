@@ -1,0 +1,42 @@
+#viewer-content {
+  position: relative;
+  max-width: 100vw;
+}
+
+#viewer-content header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+}
+
+#viewer-content header .interactable-container {
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+#viewer-content header .interactable-container.hidden {
+  visibility: hidden;
+}
+
+#viewer-content header .interactable-container.active {
+  background-color: #a8aaac63;
+}
+
+#viewer-content header .interactable {
+  height: 1.5rem;
+  padding: 0.5rem;
+  background-color: gray;
+  border-radius: 0.5rem;
+}
+
+#viewer-content header .interactable img {
+  aspect-ratio: 1;
+  height: 100%;
+}
+
+.infinite-scroll {
+  padding: 0 0.5rem;
+  overflow-y: auto;
+}

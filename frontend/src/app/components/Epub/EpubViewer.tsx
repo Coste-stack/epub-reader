@@ -1,3 +1,4 @@
+import './EpubViewer.css'
 import React, { useMemo, useState } from "react";
 import InfiniteScroll from "../../util/InfiniteScroll/InfiniteScroll";
 import { useScrollProgress } from "./useScrollProgress";
@@ -5,7 +6,7 @@ import { useChaptersLoader } from "./useChapterLoader";
 import { useBookLoader } from "./useBookLoader";
 import { Chapter } from "./Chapter";
 
-const EpubViewer: React.FC = () => {
+const TextScroller: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   const { book, zip, chapterRefs } = 
@@ -27,12 +28,12 @@ const EpubViewer: React.FC = () => {
   )), [loadedChapters]);
 
   return (
-    <div>
+    <div className="text-scroller">
       {error && <div style={{ color: "red" }}>{error}</div>}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        style={{ height: "80vh", overflowY: "auto" }}
+        className="infinite-scroll"
       >
         <InfiniteScroll 
           listItems={chapterList}
@@ -42,5 +43,49 @@ const EpubViewer: React.FC = () => {
     </div>
   );
 };
+
+type HeaderProps = {
+  isFocused: boolean
+}
+
+const ViewerHeader: React.FC<HeaderProps> = ({ isFocused }) => {
+  const visibilityState = isFocused ? "active" : "hidden";
+
+  return (
+    <div 
+      className={`interactable-container ${visibilityState}`}
+    >
+      <div className="interactable">
+        <img src="/assets/settings_black.png" alt="settings"/>
+      </div>
+      <div className="interactable">
+        <img src="/assets/close_black.png" alt="close"/>
+      </div>
+    </div>
+  )
+}
+
+const EpubViewer: React.FC = () => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleFocus = () => {
+    console.log("FOCUS: ", isFocused);
+    setIsFocused(prev => !prev);
+  }
+
+  return (
+    <div 
+      id="viewer-content"
+      onClick={handleFocus}
+    >
+      <header>
+        <ViewerHeader isFocused={isFocused} />
+      </header>
+      <main>
+        <TextScroller />
+      </main>
+    </div>
+  )
+}
 
 export default EpubViewer;
