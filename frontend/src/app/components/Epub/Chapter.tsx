@@ -1,6 +1,6 @@
 import React, { useEffect }from "react";
 
-export function Chapter({ html }: { html: string }) {
+export function ChapterItem({ html }: { html: string }) {
   const ref = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {

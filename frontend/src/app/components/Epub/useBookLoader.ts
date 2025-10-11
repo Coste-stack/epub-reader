@@ -13,6 +13,7 @@ export function useBookLoader(
   const { bookId } = useParams();
 
   const [zip, setZip] = useState<JSZip | null>(null);
+  const [fullChapterRefs, setFullChapterRefs] = useState<ChapterRef[]>([]);
   const [chapterRefs, setChapterRefs] = useState<ChapterRef[]>([]);
   const [chapterStartIndex, setChapterStartIndex] = useState<number>(0);
   
@@ -56,6 +57,7 @@ export function useBookLoader(
         const chapters = foundChapters.slice(startIndex);
 
         setZip(fetchedZip);
+        setFullChapterRefs(foundChapters);
         setChapterRefs(chapters);
         setChapterStartIndex(startIndex)
       } catch (err) {
@@ -69,5 +71,15 @@ export function useBookLoader(
     }
   }, [book]);
 
-  return { book, zip, chapterRefs, chapterStartIndex }
+  // Whenever start index changes, update the sliced chapterRefs
+  useEffect(() => {
+    if (!fullChapterRefs || fullChapterRefs.length === 0) {
+      setChapterRefs([]);
+      return;
+    }
+    const sliced = fullChapterRefs.slice(chapterStartIndex);
+    setChapterRefs(sliced);
+  }, [fullChapterRefs, chapterStartIndex]);
+
+  return { book, zip, chapterRefs, chapterStartIndex, setChapterStartIndex }
 }
