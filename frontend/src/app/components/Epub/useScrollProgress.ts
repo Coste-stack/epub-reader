@@ -17,43 +17,58 @@ type UseScrollProgressResult = {
 export function useScrollProgress(
   setError: React.Dispatch<React.SetStateAction<string | null>>,
   loadedChapters: Chapter[], 
-  book: Book | null
+  book: Book | null,
+  chapterStartIndex: number = 0
 ): UseScrollProgressResult {
   const toast = useToast();
   const backendContext = useBackend();
-  const hasScrolledToProgress = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const scrollUpdateTimeout = useRef<number | null>(null);
 
+  let hasScrolledToProgress: boolean = false;
+
+  // Derive baseIndex
+  let baseIndex = 0;
+  if (typeof chapterStartIndex === "number") {
+    baseIndex = chapterStartIndex;
+  } else {
+    if (book && typeof book.progress === "number") {
+      baseIndex = Math.floor(book.progress);
+    }
+  }
+
   // In the beginning scroll to stored progress value
   useEffect(() => {
-    const scrollToProgress = (targetProgress: number) => {
+    const scrollToProgress = (globalProgress: number) => {
       const el = scrollContainerRef.current;
       if (!el || loadedChapters.length === 0) return;
 
-      const chapterIndex = Math.floor(targetProgress);
-      const chapterFraction = targetProgress - chapterIndex;
+      const globalChapterIndex = Math.floor(globalProgress);
+      const chapterFraction = globalProgress - globalChapterIndex;
 
-      const chapterElement = el.children[chapterIndex] as HTMLElement | undefined;
+      const localIndex = globalChapterIndex - baseIndex;
+      if (localIndex < 0) return; // progress is before the slice start
+
+      const chapterElement = el.children[localIndex] as HTMLElement | undefined;
       if (!chapterElement) return;
 
       const chapterStart = chapterElement.offsetTop;
       const chapterHeight = chapterElement.offsetHeight;
       const scrollTop = chapterStart + chapterHeight * chapterFraction - el.clientHeight;
 
-      el.scrollTo({ top: scrollTop, behavior: "smooth" });
+      requestAnimationFrame(() => {
+        el.scrollTo({ top: scrollTop, behavior: "smooth" });
+      });
     };
     
-    if (!hasScrolledToProgress.current && loadedChapters.length > 0) {
-      hasScrolledToProgress.current = true;
-      if (book && book.progress) {
-        const decimalProgress = book.progress - Math.floor(book.progress);
-        //console.log(decimalProgress);
-        scrollToProgress(decimalProgress);
+    if (!hasScrolledToProgress && loadedChapters.length > 0) {
+      hasScrolledToProgress = true;
+      if (book && typeof book.progress === "number") {
+        scrollToProgress(book.progress);
       }
     }
-  }, [loadedChapters.length]);
+  }, [loadedChapters.length, baseIndex, book?.progress]);
 
   // Get reading progress from scroll
     const handleScroll = () => {
@@ -67,7 +82,7 @@ export function useScrollProgress(
         if (!el || loadedChapters.length === 0) return;
   
         const children = Array.from(el.children);
-        let chapterIndex = 0;
+        let chapterIndexGlobal = baseIndex;
         let chapterFraction = 0;
   
         const visibleBottom = el.scrollTop + el.clientHeight;
@@ -76,28 +91,26 @@ export function useScrollProgress(
           const child = children[i] as HTMLElement;
           const chapterStart = child.offsetTop;
           const chapterHeight = child.offsetHeight;
-          //console.log({i, chapterStart, chapterHeight, visibleBottom});
   
           if (chapterStart <= visibleBottom) {
-            chapterIndex = i;
+            // read absolute index from data attribute if present
+            const dataIdx = child.dataset?.chapterIndex;
+            const childGlobalIndex = (dataIdx !== undefined) ? Number(dataIdx) : (baseIndex + i);
+
             const scrollInChapter = Math.min(visibleBottom - chapterStart, chapterHeight);
-            //console.log({scrollInChapter, chapterHeight});
-            
-            chapterFraction = chapterHeight > 0 
-              ? Math.max(0, scrollInChapter / chapterHeight)
-              : 1;
+            chapterFraction = chapterHeight > 0 ? Math.max(0, scrollInChapter / chapterHeight) : 1;
+            chapterIndexGlobal = childGlobalIndex;
             break;
           }
         }
-        //console.log({chapterIndex, chapterFraction});
   
         // Progress = chapters completed + fraction of current chapter
-        return chapterIndex + chapterFraction;
+        return chapterIndexGlobal + chapterFraction;
       }
   
       scrollUpdateTimeout.current = window.setTimeout(() => {
         const newScrollProgress = getScrollProgress();
-        if (newScrollProgress) {
+        if (typeof newScrollProgress === "number") {
           setScrollProgress(newScrollProgress);
         }
         scrollUpdateTimeout.current = null;
@@ -146,7 +159,7 @@ export function useScrollProgress(
     });
 
     if (!book) return;
-    if (!book.progress) {
+    if (typeof book.progress !== "number") {
       updateProgress();
     } else if (scrollProgress > book.progress) {
       updateProgress();

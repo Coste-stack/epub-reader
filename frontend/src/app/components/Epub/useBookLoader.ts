@@ -14,6 +14,7 @@ export function useBookLoader(
 
   const [zip, setZip] = useState<JSZip | null>(null);
   const [chapterRefs, setChapterRefs] = useState<ChapterRef[]>([]);
+  const [chapterStartIndex, setChapterStartIndex] = useState<number>(0);
   
   // Fetch book from db by using ID
   useEffect(() => {
@@ -45,15 +46,18 @@ export function useBookLoader(
         const response = await fetch(fileUrl);
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         const blob = await response.blob();
-        logger.debug("EPUB blob size:", blob.size);
-
         const fetchedZip = await JSZip.loadAsync(blob);
-        logger.debug("Loaded zip, files:", Object.keys(fetchedZip.files));
-
         const foundChapters = await getChapterRefs(fetchedZip);
-        const chapters = foundChapters.slice(book.progress ? book.progress : 0);
+
+        const startIndex = (book && typeof book.progress === "number") 
+          ? Math.floor(book.progress) 
+          : 0;
+
+        const chapters = foundChapters.slice(startIndex);
+
         setZip(fetchedZip);
         setChapterRefs(chapters);
+        setChapterStartIndex(startIndex)
       } catch (err) {
         logger.error("Error reading EPUB from:", err);
         setError("Error reading EPUB: " + (err instanceof Error ? err.message : String(err)));
@@ -65,5 +69,5 @@ export function useBookLoader(
     }
   }, [book]);
 
-  return { book, zip, chapterRefs }
+  return { book, zip, chapterRefs, chapterStartIndex }
 }

@@ -14,20 +14,23 @@ type TextScrollerProps = {
 const TextScroller: React.FC<TextScrollerProps> = ({ handleMenuFocus }) => {
   const [error, setError] = useState<string | null>(null);
   
-  const { book, zip, chapterRefs } = 
+  const { book, zip, chapterRefs, chapterStartIndex } = 
     useBookLoader(setError);
 
   const { loadedChapters, handleLoadMore } =
     useChaptersLoader(setError, zip, chapterRefs);
 
   const { scrollContainerRef, handleScroll } =
-    useScrollProgress(setError, loadedChapters, book);
+    useScrollProgress(setError, loadedChapters, book, chapterStartIndex);
 
   console.log("loadedChapters viewer:", loadedChapters);
   
   const chapterList = useMemo(() => loadedChapters
     .map((ch, idx) => (
-      <div key={ch.name || idx}>
+      <div 
+        key={ch.name || idx}
+        data-chapter-index={chapterStartIndex + idx}
+      >
         <Chapter html={ch.content} />
       </div>
   )), [loadedChapters]);
