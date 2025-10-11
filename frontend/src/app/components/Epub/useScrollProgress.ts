@@ -23,10 +23,10 @@ export function useScrollProgress(
   const toast = useToast();
   const backendContext = useBackend();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const hasScrolledToProgress = useRef(false);
+  const isUploadingRef = useRef(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const scrollUpdateTimeout = useRef<number | null>(null);
-
-  let hasScrolledToProgress: boolean = false;
 
   // Derive baseIndex
   let baseIndex = 0;
@@ -62,8 +62,8 @@ export function useScrollProgress(
       });
     };
     
-    if (!hasScrolledToProgress && loadedChapters.length > 0) {
-      hasScrolledToProgress = true;
+    if (!hasScrolledToProgress.current && loadedChapters.length > 0) {
+      hasScrolledToProgress.current = true;
       if (book && typeof book.progress === "number") {
         scrollToProgress(book.progress);
       }
@@ -150,15 +150,24 @@ export function useScrollProgress(
       }
     }
 
-    const updateProgress = () => handleDbOperations({
-        backendContext,
-        toast,
-        backendOperations: () => backendOperations(), 
-        clientOperations: () => clientOperations(book),
-        silent: false
-    });
+    const updateProgress = async () => {
+      try {
+        await handleDbOperations({
+          backendContext,
+          toast,
+          backendOperations: () => backendOperations(),
+          clientOperations: () => clientOperations(book),
+          silent: false,
+        });
+      } finally {
+        isUploadingRef.current = false;
+      }
+    };
 
     if (!book) return;
+    if (isUploadingRef.current) return;
+    isUploadingRef.current = true;
+    
     if (typeof book.progress !== "number") {
       updateProgress();
     } else if (scrollProgress > book.progress) {
