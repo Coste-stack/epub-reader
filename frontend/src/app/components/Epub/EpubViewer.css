@@ -39,17 +39,18 @@
 }
 
 #viewer-content .interactable {
-  height: 1.5rem;
-  width: 1.5rem;
-  padding: 0.5rem;
+  aspect-ratio: 1;
+  height: 2rem;
+  padding: 0.25rem;
   background-color: gray;
   border-radius: 0.5rem;
   cursor: pointer;
 }
 
-#viewer-content .interactable img {
+#viewer-content .interactable > *:first-child {
   aspect-ratio: 1;
   height: 100%;
+  width: 100%;
 }
 
 .settings-popup {

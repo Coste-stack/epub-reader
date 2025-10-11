@@ -6,6 +6,7 @@ import { useChaptersLoader } from "./useChapterLoader";
 import { useBookLoader } from "./useBookLoader";
 import { Chapter } from "./Chapter";
 import { useNavigate } from 'react-router-dom';
+import { CloseButton, SettingsButton } from '../../util/UI/Buttons';
 
 type TextScrollerProps = {
   handleMenuFocus: () => void;
@@ -76,18 +77,8 @@ const ViewerHeader: React.FC<HeaderProps> = ({ isMenuFocused, setSettingsOpen })
     <div 
       className={`interactable-container ${visibilityState}`}
     >
-      <div 
-        className="interactable"
-        onClick={handleSettingsClick}
-      >
-        <img src="/assets/settings_black.png" alt="settings"/>
-      </div>
-      <div 
-        className="interactable"
-        onClick={handleExit}
-      >
-        <img src="/assets/close_black.png" alt="close"/>
-      </div>
+      <SettingsButton handleClick={handleSettingsClick}/>
+      <CloseButton handleClick={handleExit}/>
     </div>
   )
 }
@@ -101,12 +92,7 @@ type SettingsPopupProps = {
 const SettingsPopup: React.FC<SettingsPopupProps> = ({ onClose }) => (
   <div className="settings-popup">
     <div className="settings-popup-content">
-      <div 
-        className="interactable"
-        onClick={onClose}
-      >
-        <img src="/assets/close_black.png" alt="close"/>
-      </div>
+      <CloseButton handleClick={onClose}/>
       <p>Settings</p>
     </div>
   </div>

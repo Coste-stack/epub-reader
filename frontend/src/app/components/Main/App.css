@@ -24,6 +24,8 @@ body {
   padding: 0 5vw;
 }
 
+/* --- header --- */
+
 #app-content header {
   position: sticky;
   top: 0;
@@ -34,12 +36,7 @@ body {
   justify-content: space-between;
 }
 
-img {
-  object-fit: contain;
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
+/* --- main --- */
 
 ul.book-list {
   padding: 0;
@@ -48,6 +45,8 @@ ul.book-list {
   grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   gap: 1.5em;
 }
+
+/* --- book --- */
 
 li.book {
   list-style-type: none; 
@@ -59,20 +58,20 @@ li.book {
 
 .book .cover {
   flex: 0 0 60%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  cursor: pointer;
   overflow: hidden;
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  justify-content: center;  
 }
 
-.book .cover img {
-  width: auto;
-  height: auto;
+.cover img {
+  object-fit: contain;
   max-width: 100%;
   max-height: 100%;
-  object-fit: cover;
+  width: auto;
+  height: auto;
   display: block;
 }
 
@@ -100,23 +99,39 @@ li.book {
   font-size: 0.9em;
 }
 
-.book-button, .upload-file {
+/* --- buttons --- */
+
+.upload-file, 
+.book-handler {
   background-color: #14af9d;
-  border-radius: 0.5rem;
+  cursor: pointer;
   aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.book-button {
-  width: 2rem;
-  padding: 0.25rem;
-}
-
+/* header button */
 .upload-file {
   width: 3.5rem;
-  padding: 0.25vw;
-  cursor: pointer;
+  height: 3.5rem;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
 }
 
-.upload-file * {
-  cursor: pointer;
+/* book button */
+.book-handler {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.2rem;
+  border-radius: 0.2rem;
+}
+
+/* interactables take 100% space and have a bg color */
+#app-content .interactable,
+#app-content .interactable > *:first-child {
+  background-color: #14af9d;
+  aspect-ratio: 1;
+  height: 100%;
+  width: 100%;
 }

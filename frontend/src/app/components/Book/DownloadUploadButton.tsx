@@ -5,6 +5,7 @@ import { AppLogger as logger } from "../../util/Logger";
 import { handleDbOperations } from "../../util/BackendAPI/BookSync";
 import { useToast } from "../../util/Toast/toast-context";
 import { useBackend } from "../../util/BackendAPI/BackendContext";
+import { DownloadButton, UploadButton } from "../../util/UI/Buttons";
 
 type DownloadUploadButtonProps = {
   fileBlob: Blob | undefined;
@@ -87,9 +88,7 @@ export const DownloadUploadButton: React.FC<DownloadUploadButtonProps> = ({ file
   return (
     <div className="book-handler">
       {fileUrl ? (
-        <button className={`${"book-button"} ${"download"}`} onClick={handleDownloadClick}>
-          <img src="assets/download_black.png" alt="Download"/>
-        </button>
+        <DownloadButton handleClick={handleDownloadClick}/>
       ) : (
         <>
           <input
@@ -97,9 +96,7 @@ export const DownloadUploadButton: React.FC<DownloadUploadButtonProps> = ({ file
             accept=".epub"
             onChange={handleFileChange}
           />
-          <button className={`${"book-button"} ${"upload"}`} onClick={handleUploadClick}>
-            <img src="assets/upload_black.png" alt="Upload"/>
-          </button>
+          <UploadButton handleClick={handleUploadClick}/>
         </>
       )}
     </div>

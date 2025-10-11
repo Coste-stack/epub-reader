@@ -7,6 +7,8 @@ import { useBackend } from "../../util/BackendAPI/BackendContext";
 import { BackendDB, type Book } from "../../util/Database/BackendDB";
 import { ClientDB } from "../../util/Database/ClientDB";
 import { handleDbOperations } from "../../util/BackendAPI/BookSync";
+import { UploadButton } from "../../util/UI/Buttons";
+import { useRef } from "react";
 
 type EpubUploaderProps = {
   onUpload: () => void;
@@ -15,10 +17,10 @@ type EpubUploaderProps = {
 const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
   const toast = useToast();
   const { backendAvailable, refreshBackendStatus } = useBackend();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // input handler for manual file upload
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleUpload = async (file: File) => {
     if (!file) return;
 
     logger.debug("Manual file upload:", file.name, "size:", file.size);
@@ -33,7 +35,7 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
       const data = await extractOpfData(zip);
       const book: Book = {
         ...data,
-        fileBlob: e.target.files?.[0]
+        fileBlob: file
       }
       logger.debug("Book data: " + book);
 
@@ -80,18 +82,31 @@ const EpubUploader: React.FC<EpubUploaderProps> = ({ onUpload }) => {
     }
   };
 
+  // Handle user file upload
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleUpload(file);
+      e.target.value = "";
+    }
+  }
+
+  const triggerFileInput = async () => {
+    fileInputRef.current?.click();
+    
+  }
+
   return (
     <div className="upload-file">
-      <label htmlFor="epub-upload">
-        <img src="/assets/upload_black.png" alt="Upload epub file"/>
-        <input
-          id="epub-upload"
-          type="file"
-          accept=".epub"
-          onChange={handleFile}
-          style={{ display: 'none' }}
-        />
-      </label>
+      <UploadButton handleClick={triggerFileInput}/>
+      <input
+      ref={fileInputRef}
+        id="epub-upload"
+        type="file"
+        accept=".epub"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };
