@@ -42,7 +42,7 @@ const BookListItem: React.FC<{ book: Book }> = ({ book }) => {
     <li className="book">
       {coverUrl && (
         <div className="cover" onClick={handleBookClick}>
-          <img src={coverUrl} alt={`${book.title} Cover`} style={{ width: 100, height: "auto" }} />
+          <img src={coverUrl} alt={`${book.title} Cover`} />
         </div>
       )}
       <div className="details">
