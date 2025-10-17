@@ -4,14 +4,13 @@
   height: 100vh;
 }
 
-/* --- page content alignment --- */
+/* --- PAGE --- */
 
 #viewer-content header {
   position: absolute;
   top: 0;
   height: 3.5rem;
   width: 100%;
-  background: transparent;
   pointer-events: none;
   z-index: 10;
 }
@@ -21,7 +20,7 @@
   z-index: 0;
 }
 
-/* --- main ---*/
+/* --- MAIN ---*/
 
 .infinite-scroll {
   height: 100vh;
@@ -29,25 +28,70 @@
   overflow-y: auto;
 }
 
-/* --- header ---*/
+/* --- HEADER ---*/
 
 #viewer-content header .interactable-container {
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   pointer-events: auto;
 }
 
-#viewer-content header .interactable-container.hidden {
-  visibility: hidden;
+/* header and footer */
+#viewer-content header,
+#viewer-content footer {
+  background: white;
+  border-bottom: 2px solid #0000000f;
+  border-top: 2px solid #0000000f;
+}
+
+/* --- header animations --- */
+#viewer-content header {
+  transform: translateY(-10px);
+  opacity: 0;
+  transition: transform 400ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 200ms ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+/* header visible */
+#viewer-content header.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* header hidden */
+#viewer-content header.hidden {
+  transform: translateY(-10px);
+  opacity: 0;
   pointer-events: none;
 }
 
-#viewer-content header .interactable-container.active,
-.settings-popup {
-  background-color: rgba(168, 170, 172, 0.4);
-  backdrop-filter: blur(1px);
+/* --- footer animations --- */
+#viewer-content footer {
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform 400ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 200ms ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+/* footer visible */
+#viewer-content footer.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* footer hidden */
+#viewer-content footer.hidden {
+  transform: translateY(10px);
+  opacity: 0;
+  pointer-events: none;
 }
 
 #viewer-content .interactable {
@@ -67,7 +111,7 @@
 
 /* --- footer popup ---*/
 
-.settings-popup {
+#viewer-content footer {
   position: sticky;
   bottom: 0;
   width: 100%;

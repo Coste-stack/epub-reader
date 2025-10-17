@@ -11,7 +11,7 @@ import type { Chapter } from '../../util/EpubUtil';
 
 const EpubViewer: React.FC = () => {
   const [isMenuFocused, setIsMenuFocused] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsOpened, setSettingsOpened] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const { book, zip, chapterRefs, chapterStartIndex, setChapterStartIndex } = 
@@ -23,23 +23,19 @@ const EpubViewer: React.FC = () => {
 
   const handleMenuFocus = () => {
     setIsMenuFocused(prev => !prev);
-    setSettingsOpen(false);
+    setSettingsOpened(false);
   }
 
   const onClose = () => {
-    setSettingsOpen(false);
+    setSettingsOpened(false);
   }
 
   return (
     <div id="viewer-content">
-      {isMenuFocused && (
-        <header>
-          <ViewerHeader 
-            isMenuFocused={isMenuFocused} 
-            setSettingsOpen={setSettingsOpen} 
-          />
-        </header>
-      )}
+      <ViewerHeader 
+        isMenuFocused={isMenuFocused} 
+        setSettingsOpened={setSettingsOpened} 
+      />
       <main>
         <TextScroller 
           handleMenuFocus={handleMenuFocus}
@@ -51,28 +47,27 @@ const EpubViewer: React.FC = () => {
           handleLoadMore={handleLoadMore}
         />
       </main>
-      {settingsOpen && (
-        <SettingsPopup 
-          onClose={onClose}
-          chapterRefs={chapterRefs}
-          setChapterStartIndex={setChapterStartIndex}
-        />
-      )}
+      <SettingsPopup 
+        onClose={onClose}
+        settingsOpened={settingsOpened}
+        chapterRefs={chapterRefs}
+        setChapterStartIndex={setChapterStartIndex}
+      />
     </div>
   )
 }
 
 type HeaderProps = {
   isMenuFocused: boolean;
-  setSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSettingsOpened: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ViewerHeader: React.FC<HeaderProps> = ({ isMenuFocused, setSettingsOpen }) => {
+const ViewerHeader: React.FC<HeaderProps> = ({ isMenuFocused, setSettingsOpened }) => {
   const navigate = useNavigate();
   const visibilityState = isMenuFocused ? "active" : "hidden";
 
   const handleSettingsClick = () => {
-    setSettingsOpen(prev => !prev);
+    setSettingsOpened(prev => !prev);
   }
 
   const handleExit = () => {
@@ -80,12 +75,12 @@ const ViewerHeader: React.FC<HeaderProps> = ({ isMenuFocused, setSettingsOpen })
   }
 
   return (
-    <div 
-      className={`interactable-container ${visibilityState}`}
-    >
-      <SettingsButton handleClick={handleSettingsClick}/>
-      <CloseButton handleClick={handleExit}/>
-    </div>
+    <header className={visibilityState}>
+      <div className="interactable-container">
+        <SettingsButton handleClick={handleSettingsClick}/>
+        <CloseButton handleClick={handleExit}/>
+      </div>
+    </header>
   )
 }
 
@@ -140,27 +135,34 @@ const TextScroller: React.FC<TextScrollerProps> = ({
 
 type SettingsPopupProps = {
   onClose: () => void;
+  settingsOpened: boolean;
   chapterRefs: any[];
   setChapterStartIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
-// TODO: Add go to specific page
 // TODO: Add change font option from a selector
 const SettingsPopup: React.FC<SettingsPopupProps> = ({
   onClose,
+  settingsOpened,
   chapterRefs,
   setChapterStartIndex,
-}) => (
-  <div className="settings-popup">
-    <CloseButton handleClick={onClose}/>
-    <div className="settings-popup-content">
-      <GoToPage
-        chapterRefs={chapterRefs}
-        setChapterStartIndex={setChapterStartIndex}
-      />
-    </div>
-  </div>
-);
+}) => {
+  const visibilityState = settingsOpened ? "active" : "hidden";
+
+  return (
+    <footer className={visibilityState}>
+      <div className="settings-popup">
+        <CloseButton handleClick={onClose}/>
+        <div className="settings-popup-content">
+          <GoToPage
+            chapterRefs={chapterRefs}
+            setChapterStartIndex={setChapterStartIndex}
+          />
+        </div>
+      </div>
+    </footer>
+  )
+}
 
 type GoToPageProps = {
   chapterRefs: any[];
