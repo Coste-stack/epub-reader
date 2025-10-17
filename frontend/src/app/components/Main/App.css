@@ -49,20 +49,30 @@ body {
 ul.book-list {
   padding: 0;
   display: grid;
+  align-items: stretch; 
   justify-items: center;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-auto-rows: max-content;
   gap: 1.5em;
+}
+
+/* reduce element height when only one item can fit */
+@media (max-width: 380px) {
+  ul.book-list {
+    align-items: start;
+  }
 }
 
 /* --- book --- */
 
 li.book {
   padding: 1rem;
-  width: clamp(10em, 80%, 25rem);
-  height: 24rem;
+  width: 100%;
+  height: auto;
+  max-height: 32rem;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   border-radius: 1rem;
-  box-sizing: content-box;
+  box-sizing: border-box;
   list-style-type: none; 
   display: flex;
   flex-direction: column;
@@ -84,7 +94,7 @@ li.book:hover{
 }
 
 /* cover highlight on higher res*/
-@media screen and (min-width:480px) {
+@media screen and (min-width: 768px) {
   .book .cover {
     padding: 0.5rem;
     background: linear-gradient(180deg,#f2f2f2,#e9e9e9);
@@ -103,12 +113,12 @@ li.book:hover{
 }
 
 .book .details {
-  flex: 0 0 30%;
   padding: 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
+  gap: clamp(0.5rem, 1vw, 1.5rem);
+  overflow: hidden;
 }
 
 .book .details * {
@@ -152,6 +162,24 @@ li.book:hover{
   height: 2.5rem;
   padding: 0.2rem;
   border-radius: 0.2rem;
+}
+
+/* reduce size to fit book */
+@media screen and (max-width: 800px) {
+  .book .details .title {
+    font-size: 0.85rem;
+  }
+
+  .book .details .author {
+    font-size: 0.75rem;
+  }
+
+  .book-handler {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.2rem;
+    border-radius: 0.4rem;
+  }
 }
 
 .book-handler > *:first-child {
