@@ -84,20 +84,21 @@ export const DownloadUploadButton: React.FC<DownloadUploadButtonProps> = ({ file
       logger.warn("File does not exist for download");
     }
   }
-
+  
   return (
     <div className="book-handler">
       {fileUrl ? (
         <DownloadButton handleClick={handleDownloadClick}/>
       ) : (
-        <>
+        <label className="upload-label">
           <input
             type="file"
             accept=".epub"
             onChange={handleFileChange}
+            style={{ display: "none" }}
           />
           <UploadButton handleClick={handleUploadClick}/>
-        </>
+        </label>
       )}
     </div>
   )

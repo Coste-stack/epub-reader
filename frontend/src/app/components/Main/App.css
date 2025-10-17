@@ -13,6 +13,14 @@ body {
   margin: 0 auto;
 }
 
+#app-content input[type="file"] {
+  visibility: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
 #app-content {
   margin: 0 auto;
   display: flex;
@@ -144,6 +152,11 @@ li.book:hover{
   height: 2.5rem;
   padding: 0.2rem;
   border-radius: 0.2rem;
+}
+
+.book-handler > *:first-child {
+  flex: 1;
+  aspect-ratio: 1;
 }
 
 /* interactables take 100% space and have a bg color */
