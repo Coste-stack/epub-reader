@@ -1,0 +1,219 @@
+#viewer-content {
+  position: relative;
+  max-width: 100vw;
+  height: 100vh;
+}
+
+/* --- PAGE --- */
+
+#viewer-content header {
+  position: absolute;
+  top: 0;
+  height: 3.5rem;
+  width: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#viewer-content main {
+  position: relative;
+  z-index: 0;
+}
+
+/* --- MAIN ---*/
+
+.infinite-scroll {
+  height: 100vh;
+  padding: 0 0.5rem;
+  overflow-y: auto;
+}
+
+/* --- HEADER ---*/
+
+#viewer-content header .interactable-container {
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  pointer-events: auto;
+}
+
+/* header and footer */
+#viewer-content header,
+#viewer-content footer {
+  background: white;
+  border-bottom: 2px solid #0000000f;
+  border-top: 2px solid #0000000f;
+}
+
+/* --- header animations --- */
+#viewer-content header {
+  transform: translateY(-10px);
+  opacity: 0;
+  transition: transform 400ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 200ms ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+/* header visible */
+#viewer-content header.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* header hidden */
+#viewer-content header.hidden {
+  transform: translateY(-10px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- footer animations --- */
+#viewer-content footer {
+  transform: translateY(10px);
+  opacity: 0;
+  transition: transform 400ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 200ms ease;
+  will-change: transform, opacity;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+/* footer visible */
+#viewer-content footer.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* footer hidden */
+#viewer-content footer.hidden {
+  transform: translateY(10px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#viewer-content .interactable {
+  aspect-ratio: 1;
+  height: 2rem;
+  padding: 0.25rem;
+  background-color: gray;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+#viewer-content .interactable > *:first-child {
+  aspect-ratio: 1;
+  height: 100%;
+  width: 100%;
+}
+
+/* --- footer popup ---*/
+
+#viewer-content footer {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  height: 16rem;
+  padding: 0.5rem 0;
+}
+
+/* close button */
+.settings-popup .interactable {
+  position: absolute;
+  right: 0;
+  margin: 0 1rem;
+}
+
+/* footer content */
+.settings-popup-content {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+/* -- "go to page" element -- */
+
+/* include border for height */
+.settings-popup-content .goto-container *,
+.settings-popup-content .goto-form * {
+  box-sizing: border-box;
+}
+
+.settings-popup-content .goto-container {
+  display: flex;
+  gap: 0.5rem;
+  height: 2.5rem;
+  align-items: center;
+}
+
+.settings-popup-content .goto-form {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: 1px solid lightgray;
+  border-radius: 3px;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  max-width: 16rem;
+}
+
+.settings-popup-content .goto-form input {
+  flex: 1;
+  border: none;
+  font-size: .875rem;
+  text-align: center;
+  height: 100%;
+}
+
+/* all form buttons */
+.settings-popup-content .goto-form button,
+.settings-popup-content .goto-container button.submit {
+  width: 2.5rem;
+  height: 100%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* input arrows */
+.settings-popup-content .goto-form button {
+  background-color: #fff;
+  border: none;
+  border-left: 1px solid lightgray;
+  color: darkgray;
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.settings-popup-content .goto-form button:hover {
+  background-color: #f5f5f5;
+}
+
+/* submit button */
+.settings-popup-content .goto-container button.submit {
+  aspect-ratio: 1;
+  width: auto;
+  height: 100%;
+}
+
+/* disable input arrows */
+.settings-popup-content .goto-container input::-webkit-outer-spin-button,
+.settings-popup-content .goto-container input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.settings-popup-content .goto-container input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.settings-popup-content .goto-container input {
+  width: 14ch;
+}
